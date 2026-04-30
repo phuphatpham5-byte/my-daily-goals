@@ -1,8 +1,10 @@
 let appData = JSON.parse(localStorage.getItem('myDashboardData')) || {
     goals: {}, recall: [], 
     sheetData: [["Môn học", "Hệ số", "Điểm"], ["Toán", "2", "8.5"]],
-    wheelItems: ["Ăn phở", "Học code", "Ngủ nướng"], // Mặc định
+    wheelItems: ["Ăn phở", "Học code", "Ngủ nướng"], 
     theme: { bg: '#1a1a1a', primary: '#00d4ff', text: '#ffffff' },
+    // Dữ liệu mới cho màu vòng quay
+    wheelTheme: { useCustom: false, color1: '#ff4d4d', color2: '#4da6ff', textColor: '#ffffff' },
     layout: ['module-goals', 'module-sheets', 'module-wheel']
 };
 let currentDate = new Date().toISOString().split('T')[0];
@@ -13,18 +15,28 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('date-picker').addEventListener('change', (e) => { currentDate = e.target.value; renderGoals(); });
     document.getElementById('add-btn').addEventListener('click', addGoal);
     
-    // Đổ dữ liệu vòng quay bằng xuống dòng (\n)
     document.getElementById('wheel-items').value = appData.wheelItems.join('\n');
     
+    // Load màu vòng quay
+    document.getElementById('w-color-1').value = appData.wheelTheme.color1;
+    document.getElementById('w-color-2').value = appData.wheelTheme.color2;
+    document.getElementById('w-color-text').value = appData.wheelTheme.textColor;
+    
     renderGoals(); checkActiveRecall(); renderSheet(); updateWheel();
+
+    // Event Listeners cho màu sắc
     document.getElementById('color-bg').addEventListener('input', updateTheme);
     document.getElementById('color-primary').addEventListener('input', updateTheme);
     document.getElementById('color-text').addEventListener('input', updateTheme);
+    
+    document.getElementById('w-color-1').addEventListener('input', applyWheelColors);
+    document.getElementById('w-color-2').addEventListener('input', applyWheelColors);
+    document.getElementById('w-color-text').addEventListener('input', applyWheelColors);
 });
 
 function saveData() { localStorage.setItem('myDashboardData', JSON.stringify(appData)); }
 
-/* --- THEME & KÉO THẢ (Giữ nguyên như cũ) --- */
+/* --- THEME WEB --- */
 function updateTheme() {
     appData.theme.bg = document.getElementById('color-bg').value;
     appData.theme.primary = document.getElementById('color-primary').value;
@@ -44,6 +56,7 @@ function resetTheme() {
     applyTheme(); saveData();
 }
 
+/* --- KÉO THẢ --- */
 function initDragAndDrop() {
     const draggables = document.querySelectorAll('.draggable-module');
     const container = document.getElementById('drag-container');
@@ -77,7 +90,7 @@ function restoreLayout() {
     appData.layout.forEach(id => { const el = document.getElementById(id); if(el) container.appendChild(el); });
 }
 
-/* --- GOALS, RECALL, SHEETS (Giữ nguyên như cũ) --- */
+/* --- GOALS, RECALL, SHEETS --- */
 function addGoal() {
     const title = document.getElementById('goal-input').value.trim();
     if (!title) return;
@@ -149,10 +162,30 @@ function calculateAverage() {
     else alert("Không tìm thấy dữ liệu số hợp lệ để tính toán.");
 }
 
-/* --- VÒNG QUAY MAY MẮN (Đã fix hiển thị chữ & tách bằng dòng) --- */
+/* --- VÒNG QUAY MAY MẮN --- */
 let currentDegree = 0;
+
+function applyWheelColors() {
+    appData.wheelTheme.useCustom = true;
+    appData.wheelTheme.color1 = document.getElementById('w-color-1').value;
+    appData.wheelTheme.color2 = document.getElementById('w-color-2').value;
+    appData.wheelTheme.textColor = document.getElementById('w-color-text').value;
+    saveData();
+    drawWheel();
+}
+
+function resetWheelColors() {
+    appData.wheelTheme.useCustom = false;
+    // Đặt lại hiển thị trên input về màu mặc định để dễ nhìn
+    document.getElementById('w-color-1').value = '#ff4d4d';
+    document.getElementById('w-color-2').value = '#4da6ff';
+    document.getElementById('w-color-text').value = '#ffffff';
+    appData.wheelTheme.textColor = '#000000'; // Chữ mặc định là đen
+    saveData();
+    drawWheel();
+}
+
 function updateWheel() {
-    // Tách các thành phần bằng phím Enter (xuống dòng \n)
     const itemsText = document.getElementById('wheel-items').value;
     appData.wheelItems = itemsText.split('\n').map(i => i.trim()).filter(i => i);
     document.getElementById('wheel-items').value = appData.wheelItems.join('\n');
@@ -162,10 +195,9 @@ function updateWheel() {
 
 function drawWheel() {
     const wheel = document.getElementById('wheel');
-    wheel.innerHTML = ''; // Xóa chữ cũ
+    wheel.innerHTML = '';
     
-    // Bảng màu đẹp hơn
-    const colors = ['#f44336', '#2196f3', '#ffeb3b', '#4caf50', '#9c27b0', '#ff9800', '#00bcd4', '#e91e63'];
+    const defaultColors = ['#f44336', '#2196f3', '#ffeb3b', '#4caf50', '#9c27b0', '#ff9800', '#00bcd4', '#e91e63'];
     const total = appData.wheelItems.length;
     if (total === 0) {
         wheel.style.background = 'transparent';
@@ -176,18 +208,23 @@ function drawWheel() {
     const degreePerItem = 360 / total;
     
     for (let i = 0; i < total; i++) {
-        // 1. Vẽ mảng màu (Gradient)
         const start = i * degreePerItem;
         const end = (i + 1) * degreePerItem;
-        gradientParts.push(`${colors[i % colors.length]} ${start}deg ${end}deg`);
         
-        // 2. Chèn chữ vào giữa mảng màu
+        // Xác định màu nền của ô
+        let sliceColor;
+        if (appData.wheelTheme.useCustom) {
+            sliceColor = (i % 2 === 0) ? appData.wheelTheme.color1 : appData.wheelTheme.color2;
+        } else {
+            sliceColor = defaultColors[i % defaultColors.length];
+        }
+        
+        gradientParts.push(`${sliceColor} ${start}deg ${end}deg`);
+        
         const midAngle = start + (degreePerItem / 2);
         const wrapper = document.createElement('div');
         wrapper.className = 'wheel-text-wrapper';
         
-        // Conic-gradient 0deg bắt đầu từ hướng 12h, CSS Rotate 0deg bắt đầu từ 3h
-        // Nên ta phải trừ đi 90 độ để khớp vị trí
         let rotateAngle = midAngle - 90;
         wrapper.style.transform = `rotate(${rotateAngle}deg)`;
         
@@ -195,7 +232,9 @@ function drawWheel() {
         textSpan.className = 'wheel-text';
         textSpan.innerText = appData.wheelItems[i];
         
-        // Xoay lật chữ nếu nằm ở nửa bên trái vòng quay (để chữ không bị lộn ngược)
+        // Xác định màu chữ
+        textSpan.style.color = appData.wheelTheme.useCustom ? appData.wheelTheme.textColor : '#000000';
+        
         let actualRotate = rotateAngle % 360;
         if (actualRotate < 0) actualRotate += 360;
         if (actualRotate > 90 && actualRotate < 270) {
@@ -232,7 +271,7 @@ function spinWheel() {
         
         document.getElementById('wheel-result').innerText = `🎉 Kết quả: ${appData.wheelItems[index]}`;
         btn.disabled = false;
-    }, 4000); // 4 giây
+    }, 4000);
 }
 
 document.getElementById('clear-btn').addEventListener('click', () => {

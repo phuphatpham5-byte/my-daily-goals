@@ -9,7 +9,7 @@
 </head>
 <body>
     <div id="theme-settings">
-        <span style="font-weight: bold; margin-right: 10px;">🎨 Tùy chỉnh:</span>
+        <span style="font-weight: bold; margin-right: 10px;">🎨 Tùy chỉnh Web:</span>
         <label class="color-picker-label">Màu nền: <input type="color" id="color-bg"></label>
         <label class="color-picker-label">Màu nút: <input type="color" id="color-primary"></label>
         <label class="color-picker-label">Màu chữ: <input type="color" id="color-text"></label>
@@ -58,9 +58,19 @@
             
             <div class="wheel-split-layout">
                 <div class="wheel-left">
-                    <label for="wheel-items" style="margin-bottom:8px; font-weight:bold;">Danh sách vòng quay (Mỗi dòng 1 mục):</label>
-                    <textarea id="wheel-items" rows="8" placeholder="Ăn phở&#10;Học code&#10;Ngủ nướng"></textarea>
-                    <button onclick="updateWheel()" style="margin-top:10px;">Cập nhật vòng quay</button>
+                    <label for="wheel-items" style="margin-bottom:8px; font-weight:bold;">Danh sách (Mỗi dòng 1 mục):</label>
+                    <textarea id="wheel-items" rows="6" placeholder="Ăn phở&#10;Học code&#10;Ngủ nướng"></textarea>
+                    <button onclick="updateWheel()" style="margin-top:10px; margin-bottom: 20px;">Cập nhật vòng quay</button>
+                    
+                    <div class="wheel-color-settings">
+                        <p style="font-weight:bold; margin-bottom: 10px; font-size: 0.9rem;">🎨 Cài đặt màu vòng quay:</p>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                            <label class="color-picker-label" title="Màu xen kẽ 1">Màu 1: <input type="color" id="w-color-1"></label>
+                            <label class="color-picker-label" title="Màu xen kẽ 2">Màu 2: <input type="color" id="w-color-2"></label>
+                            <label class="color-picker-label" title="Màu của chữ trong vòng quay">Chữ: <input type="color" id="w-color-text"></label>
+                            <button onclick="resetWheelColors()" class="btn-reset-wheel">Reset</button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="wheel-right">

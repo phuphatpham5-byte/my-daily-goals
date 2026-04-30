@@ -10,34 +10,34 @@
 
 body { background-color: var(--bg-color); color: var(--text-color); min-height: 100vh; padding: 20px; transition: 0.3s; }
 
-/* --- 1. THEME SETTINGS (Đã sửa theo yêu cầu) --- */
+/* --- THEME SETTINGS --- */
 #theme-settings {
     display: flex; gap: 15px; align-items: center; justify-content: flex-end; flex-wrap: wrap;
     margin-bottom: 20px; padding: 15px; background: var(--card-bg); border-radius: 8px;
 }
 .color-picker-label { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.95rem; }
-#theme-settings input[type="color"] {
+input[type="color"] {
     -webkit-appearance: none; border: 2px solid rgba(255,255,255,0.2);
     width: 35px; height: 35px; border-radius: 8px; cursor: pointer; padding: 0; background: none;
 }
-#theme-settings input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
-#theme-settings input[type="color"]::-webkit-color-swatch { border: none; border-radius: 6px; }
+input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+input[type="color"]::-webkit-color-swatch { border: none; border-radius: 6px; }
 
 header { text-align: center; margin-bottom: 30px; }
 h1 { color: var(--primary-color); }
 
-/* --- 2. DRAGGABLE MODULES --- */
+/* --- DRAGGABLE MODULES --- */
 #drag-container { display: flex; flex-direction: column; gap: 20px; }
 .draggable-module { background: var(--card-bg); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 15px; }
 .draggable-module.dragging { opacity: 0.5; border: 2px dashed var(--primary-color); }
 .drag-handle { cursor: grab; font-weight: bold; padding: 10px; margin-bottom: 15px; background: rgba(0,0,0,0.2); border-radius: 6px; }
 .drag-handle:active { cursor: grabbing; }
 
-input, select, button, textarea { padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: var(--text-color); outline: none; }
+input[type="text"], input[type="date"], select, button, textarea { padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.3); color: var(--text-color); outline: none; }
 button { background: var(--primary-color); color: #000; font-weight: bold; cursor: pointer; border: none; transition: 0.2s; }
 button:hover { filter: brightness(1.2); transform: scale(1.05); }
 
-/* --- 3. GOALS & RECALL --- */
+/* --- GOALS & RECALL --- */
 .controls { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }
 .grid-container { display: grid; gap: 10px; }
 .card { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border-left: 4px solid #555; }
@@ -45,7 +45,7 @@ button:hover { filter: brightness(1.2); transform: scale(1.05); }
 .recall-select { font-size: 0.8rem; margin-top: 10px; padding: 5px; }
 #recall-notice { background: rgba(255, 193, 7, 0.2); border: 1px solid #ffc107; padding: 10px; border-radius: 8px; margin-bottom: 15px; }
 
-/* --- 4. BẢNG THỐNG KÊ --- */
+/* --- BẢNG THỐNG KÊ --- */
 .sheet-controls { display: flex; gap: 10px; margin-bottom: 10px; }
 .btn-calc { background: #4CAF50; color: white; }
 .table-responsive { overflow-x: auto; }
@@ -53,11 +53,14 @@ button:hover { filter: brightness(1.2); transform: scale(1.05); }
 #mini-sheet th, #mini-sheet td { border: 1px solid rgba(255,255,255,0.2); padding: 0; min-width: 100px; }
 #mini-sheet input { width: 100%; height: 100%; border: none; background: transparent; padding: 10px; }
 
-/* --- 5. VÒNG QUAY MAY MẮN (Layout Mới 2 cột & Text on wheel) --- */
+/* --- VÒNG QUAY MAY MẮN --- */
 .wheel-split-layout { display: flex; gap: 30px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
 .wheel-left { flex: 1; min-width: 250px; display: flex; flex-direction: column; }
 .wheel-left textarea { width: 100%; resize: vertical; line-height: 1.5; font-size: 1rem; }
 .wheel-right { flex: 1; min-width: 280px; display: flex; flex-direction: column; align-items: center; gap: 15px; }
+
+.wheel-color-settings { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); }
+.btn-reset-wheel { padding: 8px 12px; font-size: 0.85rem; }
 
 .wheel-box { position: relative; width: 280px; height: 280px; }
 #wheel { 
@@ -68,14 +71,13 @@ button:hover { filter: brightness(1.2); transform: scale(1.05); }
 .wheel-pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); font-size: 30px; color: var(--primary-color); z-index: 10; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
 #wheel-result { font-size: 1.2rem; font-weight: bold; color: var(--primary-color); text-align: center; min-height: 30px;}
 
-/* CSS cho Chữ trên vòng quay */
+/* CSS Chữ trên vòng quay (Đã xóa text-shadow) */
 .wheel-text-wrapper {
     position: absolute; top: 50%; left: 50%; width: 50%; height: 2px;
     transform-origin: 0 50%; display: flex; align-items: center; justify-content: flex-end;
     padding-right: 15px; box-sizing: border-box; pointer-events: none;
 }
 .wheel-text {
-    color: #000; font-weight: bold; font-size: 0.95rem; 
-    text-shadow: 1px 1px 0px rgba(255,255,255,0.8);
+    font-weight: bold; font-size: 0.95rem; 
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100px;
 }

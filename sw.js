@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dashboard-cache-v2'; // Đổi từ v1 sang v2
+const CACHE_NAME = 'dashboard-cache-v3'; // Đổi từ v1 sang v2
 const urlsToCache = ['/', '/index.html', '/style.css', '/app.js'];
 
 // Cài đặt và lưu cache mới

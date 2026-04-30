@@ -3,62 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Daily Goals</title>
+    <title>My Daily Goals & Dashboard</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0a0a0a">
 </head>
 <body>
+    <div id="theme-settings">
+        <span>🎨 Tùy chỉnh:</span>
+        <input type="color" id="color-bg" title="Màu nền">
+        <input type="color" id="color-primary" title="Màu nút & Accent">
+        <input type="color" id="color-text" title="Màu chữ">
+        <button onclick="resetTheme()">Reset</button>
+    </div>
+
     <header>
-        <h1>My Daily Goals 🔥</h1>
-        <div class="header-stats">
-            <span id="current-streak-display">Current Streak: 0 🔥</span>
-        </div>
+        <h1>My Dashboard 🔥</h1>
+        <p>Kéo thả các khối (☰) để sắp xếp giao diện</p>
     </header>
 
-    <div class="controls">
-        <input type="date" id="date-picker">
-        <div class="add-goal-box">
-            <input type="text" id="goal-input" placeholder="Nhập mục tiêu mới...">
-            <select id="goal-type">
-                <option value="health">Sức khỏe</option>
-                <option value="work">Công việc</option>
-                <option value="study">Học tập</option>
-            </select>
-            <button id="add-btn">Thêm</button>
-        </div>
-    </div>
+    <div id="drag-container">
+        
+        <section class="draggable-module" draggable="true" id="module-goals">
+            <div class="drag-handle">☰ Mục Tiêu & Active Recall</div>
+            <div class="controls">
+                <input type="date" id="date-picker">
+                <div class="add-goal-box">
+                    <input type="text" id="goal-input" placeholder="Nhập mục tiêu mới...">
+                    <button id="add-btn">Thêm</button>
+                </div>
+            </div>
+            
+            <div id="recall-notice" class="hidden">
+                <strong>🧠 Active Recall Hôm Nay:</strong>
+                <ul id="recall-list"></ul>
+            </div>
 
-    <div class="progress-section">
-        <span>Tiến trình ngày: <span id="daily-progress-text">0%</span></span>
-        <div class="progress-bar-container">
-            <div id="daily-progress-bar" class="progress-fill"></div>
-        </div>
-    </div>
+            <main id="goal-container" class="grid-container"></main>
+        </section>
 
-    <main id="goal-container" class="grid-container">
-        </main>
+        <section class="draggable-module" draggable="true" id="module-sheets">
+            <div class="drag-handle">☰ Bảng Thống Kê Cá Nhân</div>
+            <div class="sheet-controls">
+                <button onclick="sheetAddRow()">+ Thêm Hàng</button>
+                <button onclick="sheetAddCol()">+ Thêm Cột</button>
+                <button onclick="calculateAverage()" class="btn-calc">📊 Tính Điểm Trung Bình</button>
+            </div>
+            <div class="table-responsive">
+                <table id="mini-sheet">
+                    </table>
+            </div>
+        </section>
+
+        <section class="draggable-module" draggable="true" id="module-wheel">
+            <div class="drag-handle">☰ Vòng Quay May Mắn</div>
+            <div class="wheel-container">
+                <div class="wheel-setup">
+                    <textarea id="wheel-items" rows="4" placeholder="Nhập các phần thưởng/mục tiêu, cách nhau bằng dấu phẩy (VD: Ăn phở, Chơi game, Xem phim)"></textarea>
+                    <button onclick="updateWheel()">Cập nhật vòng quay</button>
+                </div>
+                <div class="wheel-box">
+                    <div id="wheel"></div>
+                    <div class="wheel-pointer">▼</div>
+                </div>
+                <button id="spin-btn" onclick="spinWheel()">QUAY!</button>
+                <p id="wheel-result"></p>
+            </div>
+        </section>
+
+    </div>
 
     <footer>
-        <div class="footer-stats">
-            <p>Tổng % Tháng: <span id="monthly-progress">0%</span></p>
-            <p>Best Streak: <span id="best-streak">0 🏆</span></p>
-        </div>
-        <div class="data-actions">
-            <button id="export-btn">📥 Export JSON</button>
-            <label for="import-file" class="import-label">📤 Import JSON</label>
-            <input type="file" id="import-file" accept=".json">
-        </div>
+        <button id="export-btn">📥 Backup Data</button>
+        <button id="clear-btn" style="background:var(--coral-red)">🗑 Xóa Data</button>
     </footer>
 
     <script src="app.js"></script>
-    <script>
-        // Đăng ký Service Worker cho PWA
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js').catch(err => console.log('SW setup failed', err));
-            });
-        }
-    </script>
 </body>
 </html>

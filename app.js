@@ -1,10 +1,17 @@
+// Thêm dữ liệu Flashcards và Module mới vào Layout để không bị lỗi bộ nhớ cũ
 let appData = JSON.parse(localStorage.getItem('myDashboardData')) || {
     goals: {}, recall: [], 
     sheetData: [["Môn học", "Hệ số", "Điểm"], ["Toán", "2", "8.5"]],
-    wheelItems: ["Ăn phở", "Học code", "Ngủ nướng"], // Mặc định
+    wheelItems: ["Ăn phở", "Học code", "Ngủ nướng"], 
     theme: { bg: '#1a1a1a', primary: '#00d4ff', text: '#ffffff' },
     layout: ['module-goals', 'module-sheets', 'module-wheel']
 };
+
+// Vá lỗi an toàn nếu là user từ phiên bản cũ
+if (!appData.flashcards) appData.flashcards = [];
+if (!appData.layout.includes('module-flashcards')) appData.layout.push('module-flashcards');
+if (!appData.layout.includes('module-pomodoro')) appData.layout.push('module-pomodoro');
+
 let currentDate = new Date().toISOString().split('T')[0];
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -13,18 +20,21 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('date-picker').addEventListener('change', (e) => { currentDate = e.target.value; renderGoals(); });
     document.getElementById('add-btn').addEventListener('click', addGoal);
     
-    // Đổ dữ liệu vòng quay bằng xuống dòng (\n)
     document.getElementById('wheel-items').value = appData.wheelItems.join('\n');
     
-    renderGoals(); checkActiveRecall(); renderSheet(); updateWheel();
+    renderGoals(); checkActiveRecall(); renderSheet(); updateWheel(); renderFC(); initPomo();
+    
     document.getElementById('color-bg').addEventListener('input', updateTheme);
     document.getElementById('color-primary').addEventListener('input', updateTheme);
     document.getElementById('color-text').addEventListener('input', updateTheme);
+    
+    // Nút thêm Flashcard
+    document.getElementById('add-fc-btn').addEventListener('click', addFC);
 });
 
 function saveData() { localStorage.setItem('myDashboardData', JSON.stringify(appData)); }
 
-/* --- THEME & KÉO THẢ (Giữ nguyên như cũ) --- */
+/* --- THEME & KÉO THẢ --- */
 function updateTheme() {
     appData.theme.bg = document.getElementById('color-bg').value;
     appData.theme.primary = document.getElementById('color-primary').value;
@@ -77,7 +87,7 @@ function restoreLayout() {
     appData.layout.forEach(id => { const el = document.getElementById(id); if(el) container.appendChild(el); });
 }
 
-/* --- GOALS, RECALL, SHEETS (Giữ nguyên như cũ) --- */
+/* --- GOALS, RECALL, SHEETS --- */
 function addGoal() {
     const title = document.getElementById('goal-input').value.trim();
     if (!title) return;
@@ -149,45 +159,33 @@ function calculateAverage() {
     else alert("Không tìm thấy dữ liệu số hợp lệ để tính toán.");
 }
 
-/* --- VÒNG QUAY MAY MẮN (Đã fix hiển thị chữ & tách bằng dòng) --- */
+/* --- VÒNG QUAY MAY MẮN --- */
 let currentDegree = 0;
 function updateWheel() {
-    // Tách các thành phần bằng phím Enter (xuống dòng \n)
     const itemsText = document.getElementById('wheel-items').value;
     appData.wheelItems = itemsText.split('\n').map(i => i.trim()).filter(i => i);
     document.getElementById('wheel-items').value = appData.wheelItems.join('\n');
     saveData();
     drawWheel();
 }
-
 function drawWheel() {
     const wheel = document.getElementById('wheel');
-    wheel.innerHTML = ''; // Xóa chữ cũ
-    
-    // Bảng màu đẹp hơn
+    wheel.innerHTML = ''; 
     const colors = ['#f44336', '#2196f3', '#ffeb3b', '#4caf50', '#9c27b0', '#ff9800', '#00bcd4', '#e91e63'];
     const total = appData.wheelItems.length;
-    if (total === 0) {
-        wheel.style.background = 'transparent';
-        return;
-    }
-    
+    if (total === 0) { wheel.style.background = 'transparent'; return; }
     let gradientParts = [];
     const degreePerItem = 360 / total;
     
     for (let i = 0; i < total; i++) {
-        // 1. Vẽ mảng màu (Gradient)
         const start = i * degreePerItem;
         const end = (i + 1) * degreePerItem;
         gradientParts.push(`${colors[i % colors.length]} ${start}deg ${end}deg`);
         
-        // 2. Chèn chữ vào giữa mảng màu
         const midAngle = start + (degreePerItem / 2);
         const wrapper = document.createElement('div');
         wrapper.className = 'wheel-text-wrapper';
         
-        // Conic-gradient 0deg bắt đầu từ hướng 12h, CSS Rotate 0deg bắt đầu từ 3h
-        // Nên ta phải trừ đi 90 độ để khớp vị trí
         let rotateAngle = midAngle - 90;
         wrapper.style.transform = `rotate(${rotateAngle}deg)`;
         
@@ -195,7 +193,6 @@ function drawWheel() {
         textSpan.className = 'wheel-text';
         textSpan.innerText = appData.wheelItems[i];
         
-        // Xoay lật chữ nếu nằm ở nửa bên trái vòng quay (để chữ không bị lộn ngược)
         let actualRotate = rotateAngle % 360;
         if (actualRotate < 0) actualRotate += 360;
         if (actualRotate > 90 && actualRotate < 270) {
@@ -209,10 +206,8 @@ function drawWheel() {
         wrapper.appendChild(textSpan);
         wheel.appendChild(wrapper);
     }
-    
     wheel.style.background = `conic-gradient(${gradientParts.join(', ')})`;
 }
-
 function spinWheel() {
     if(appData.wheelItems.length === 0) return;
     const btn = document.getElementById('spin-btn');
@@ -229,14 +224,170 @@ function spinWheel() {
         const actualDegree = currentDegree % 360;
         const degreePerItem = 360 / appData.wheelItems.length;
         const index = Math.floor((360 - actualDegree) / degreePerItem) % appData.wheelItems.length;
-        
         document.getElementById('wheel-result').innerText = `🎉 Kết quả: ${appData.wheelItems[index]}`;
         btn.disabled = false;
-    }, 4000); // 4 giây
+    }, 4000);
 }
 
+
+/* ====================================================
+   TÍNH NĂNG MỚI: FLASHCARDS LẬT 3D & ACTIVE RECALL
+==================================================== */
+function addFC() {
+    const q = document.getElementById('fc-q').value.trim();
+    const a = document.getElementById('fc-a').value.trim();
+    if(!q || !a) return alert("Vui lòng nhập đủ Câu hỏi và Đáp án!");
+    
+    appData.flashcards.push({ id: Date.now().toString(), q: q, a: a });
+    document.getElementById('fc-q').value = '';
+    document.getElementById('fc-a').value = '';
+    saveData(); 
+    renderFC();
+}
+
+function renderFC() {
+    const container = document.getElementById('fc-container');
+    document.getElementById('fc-count').innerText = appData.flashcards.length;
+    container.innerHTML = '';
+    
+    if(appData.flashcards.length === 0) {
+        container.innerHTML = '<p style="text-align:center; color:#888; grid-column: 1/-1;">Chưa có thẻ nào. Hãy tạo thẻ đầu tiên!</p>';
+        return;
+    }
+
+    appData.flashcards.forEach(fc => {
+        const card = document.createElement('div');
+        card.className = 'flashcard';
+        // Click để lật thẻ (Chỉ lật khi không click vào button)
+        card.onclick = (e) => {
+            if(e.target.tagName !== 'BUTTON') card.classList.toggle('flipped');
+        };
+        
+        card.innerHTML = `
+            <div class="fc-inner">
+                <div class="fc-front">${fc.q}</div>
+                <div class="fc-back">
+                    <div class="fc-back-text">${fc.a}</div>
+                    <div class="fc-actions">
+                        <button onclick="removeFC('${fc.id}', event)" style="background: var(--coral-red);">Đã hiểu</button>
+                        <button onclick="keepFC(event)" style="background: #4CAF50;">Nhớ nhớ</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+
+function removeFC(id, e) {
+    e.stopPropagation(); // Ngăn sự kiện click lật thẻ
+    appData.flashcards = appData.flashcards.filter(f => f.id !== id);
+    saveData(); 
+    renderFC();
+}
+
+function keepFC(e) {
+    e.stopPropagation(); 
+    e.target.closest('.flashcard').classList.remove('flipped'); // Lật thẻ úp lại để review sau
+}
+
+
+/* ====================================================
+   TÍNH NĂNG MỚI: POMODORO TIMER VÒNG TRÒN SVG
+==================================================== */
+let pomoState = 'idle'; // Trạng thái: idle, work, rest, paused
+let pomoInterval;
+let timeRemaining = 0;
+let totalTime = 0;
+const CIRCUMFERENCE = 377; // Chu vi SVG: 2 * PI * r(60) = 376.99
+
+function initPomo() {
+    document.getElementById('pomo-start').onclick = startPomo;
+    document.getElementById('pomo-pause').onclick = pausePomo;
+    document.getElementById('pomo-reset').onclick = resetPomo;
+    document.getElementById('pomo-work-sel').onchange = resetPomo;
+    document.getElementById('pomo-rest-sel').onchange = resetPomo;
+    
+    updatePomoDisplay(parseInt(document.getElementById('pomo-work-sel').value) * 60, 'work');
+    updatePomoDisplay(parseInt(document.getElementById('pomo-rest-sel').value) * 60, 'rest');
+}
+
+function startPomo() {
+    if(pomoState === 'idle') {
+        pomoState = 'work';
+        totalTime = parseInt(document.getElementById('pomo-work-sel').value) * 60;
+        timeRemaining = totalTime;
+        document.getElementById('box-work').classList.add('active');
+        document.getElementById('box-rest').classList.remove('active');
+    } else if (pomoState === 'paused') {
+        pomoState = document.getElementById('box-work').classList.contains('active') ? 'work' : 'rest';
+    }
+    
+    clearInterval(pomoInterval);
+    pomoInterval = setInterval(pomoTick, 1000);
+}
+
+function pausePomo() {
+    clearInterval(pomoInterval);
+    pomoState = 'paused';
+}
+
+function resetPomo() {
+    clearInterval(pomoInterval);
+    pomoState = 'idle';
+    document.getElementById('box-work').classList.add('active');
+    document.getElementById('box-rest').classList.remove('active');
+    
+    updatePomoDisplay(parseInt(document.getElementById('pomo-work-sel').value) * 60, 'work');
+    updatePomoDisplay(parseInt(document.getElementById('pomo-rest-sel').value) * 60, 'rest');
+    
+    document.getElementById('ring-work').style.strokeDashoffset = 0;
+    document.getElementById('ring-rest').style.strokeDashoffset = 0;
+}
+
+function pomoTick() {
+    timeRemaining--;
+    
+    if(timeRemaining < 0) {
+        // Đổi trạng thái khi hết giờ
+        if(pomoState === 'work') {
+            pomoState = 'rest';
+            totalTime = parseInt(document.getElementById('pomo-rest-sel').value) * 60;
+            timeRemaining = totalTime;
+            document.getElementById('box-work').classList.remove('active');
+            document.getElementById('box-rest').classList.add('active');
+            document.getElementById('ring-work').style.strokeDashoffset = 0; // Reset vòng quay
+            alert("⏰ Hết giờ học! Hãy đứng dậy vươn vai và nghỉ ngơi nhé!");
+        } else {
+            pomoState = 'work';
+            totalTime = parseInt(document.getElementById('pomo-work-sel').value) * 60;
+            timeRemaining = totalTime;
+            document.getElementById('box-work').classList.add('active');
+            document.getElementById('box-rest').classList.remove('active');
+            document.getElementById('ring-rest').style.strokeDashoffset = 0;
+            alert("⏰ Hết giờ nghỉ! Quay lại tập trung học nào!");
+        }
+    }
+    
+    updatePomoDisplay(timeRemaining, pomoState);
+}
+
+function updatePomoDisplay(seconds, type) {
+    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const s = (seconds % 60).toString().padStart(2, '0');
+    document.getElementById(`time-${type}`).innerText = `${m}:${s}`;
+    
+    if(totalTime > 0 && timeRemaining <= totalTime) {
+        const circle = document.getElementById(`ring-${type}`);
+        // Tính toán độ lùi của nét đứt vòng tròn (Giảm dần về 00:00)
+        const offset = CIRCUMFERENCE - (seconds / totalTime) * CIRCUMFERENCE;
+        circle.style.strokeDashoffset = offset;
+    }
+}
+
+// Xóa Data chung
 document.getElementById('clear-btn').addEventListener('click', () => {
-    if(confirm('Bạn có chắc chắn muốn xóa toàn bộ dữ liệu?')) {
+    if(confirm('CẢNH BÁO: Bạn có chắc chắn muốn xóa toàn bộ dữ liệu?')) {
         localStorage.removeItem('myDashboardData'); location.reload();
     }
 });

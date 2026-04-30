@@ -25,9 +25,17 @@
         
         <section class="draggable-module" draggable="true" id="module-goals">
             <div class="drag-handle">☰ Mục Tiêu & Active Recall</div>
-            <div class="controls">
-                <input type="date" id="date-picker">
-                <div class="add-goal-box">
+            
+            <div class="controls" style="align-items: center;">
+                <div style="display: flex; flex-direction: column; gap: 4px; text-align: left;">
+                    <label style="font-size: 0.75rem; color: #ccc;">Từ ngày (Mặc định):</label>
+                    <input type="date" id="date-picker">
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 4px; text-align: left;">
+                    <label style="font-size: 0.75rem; color: var(--primary-color); font-weight: bold;">Đến ngày (Tạo Tracking):</label>
+                    <input type="date" id="end-date-picker">
+                </div>
+                <div class="add-goal-box" style="margin-top: 18px;">
                     <input type="text" id="goal-input" placeholder="Nhập mục tiêu mới...">
                     <button id="add-btn">Thêm</button>
                 </div>
@@ -39,6 +47,14 @@
             </div>
 
             <main id="goal-container" class="grid-container"></main>
+        </section>
+
+        <section class="draggable-module" draggable="true" id="module-habits">
+            <div class="drag-handle">☰ Tiến Độ Mục Tiêu Dài Hạn (Habit Tracker)</div>
+            <p style="font-size:0.85rem; color:#aaa; margin-bottom: 10px;">*Tạo mục tiêu có kèm <strong>Đến ngày</strong> ở bảng trên để tracking tự động tại đây.</p>
+            <div class="habit-table-container">
+                <table id="habit-table"></table>
+            </div>
         </section>
 
         <section class="draggable-module" draggable="true" id="module-sheets">

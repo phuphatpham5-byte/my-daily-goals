@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Daily Goals</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0a0a0a">
+</head>
+<body>
+    <header>
+        <h1>My Daily Goals 🔥</h1>
+        <div class="header-stats">
+            <span id="current-streak-display">Current Streak: 0 🔥</span>
+        </div>
+    </header>
+
+    <div class="controls">
+        <input type="date" id="date-picker">
+        <div class="add-goal-box">
+            <input type="text" id="goal-input" placeholder="Nhập mục tiêu mới...">
+            <select id="goal-type">
+                <option value="health">Sức khỏe</option>
+                <option value="work">Công việc</option>
+                <option value="study">Học tập</option>
+            </select>
+            <button id="add-btn">Thêm</button>
+        </div>
+    </div>
+
+    <div class="progress-section">
+        <span>Tiến trình ngày: <span id="daily-progress-text">0%</span></span>
+        <div class="progress-bar-container">
+            <div id="daily-progress-bar" class="progress-fill"></div>
+        </div>
+    </div>
+
+    <main id="goal-container" class="grid-container">
+        </main>
+
+    <footer>
+        <div class="footer-stats">
+            <p>Tổng % Tháng: <span id="monthly-progress">0%</span></p>
+            <p>Best Streak: <span id="best-streak">0 🏆</span></p>
+        </div>
+        <div class="data-actions">
+            <button id="export-btn">📥 Export JSON</button>
+            <label for="import-file" class="import-label">📤 Import JSON</label>
+            <input type="file" id="import-file" accept=".json">
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+    <script>
+        // Đăng ký Service Worker cho PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(err => console.log('SW setup failed', err));
+            });
+        }
+    </script>
+</body>
+</html>

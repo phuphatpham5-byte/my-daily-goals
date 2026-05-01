@@ -139,3 +139,51 @@ th { background: rgba(0,0,0,0.3); color: var(--primary-color); white-space: nowr
 .iv-controls button { padding: 12px 20px; font-size: 1.2rem; border-radius: 8px;}
 
 footer { text-align: center; margin-top: 30px; }
+/* ===== NOTION CHECKBOX ===== */
+
+.notion-checkbox {
+    position: relative;
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid #d3d3d1;
+    border-radius: 4px;
+    cursor: pointer;
+    background: #fff;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.notion-checkbox input {
+    opacity: 0;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.notion-checkbox span {
+    font-size: 12px;
+    color: white;
+    transform: scale(0);
+    transition: 0.15s;
+}
+
+.notion-checkbox input:checked + span {
+    transform: scale(1);
+}
+
+.notion-checkbox input:checked {
+    background: transparent;
+}
+
+.notion-checkbox:has(input:checked) {
+    background: #2f80ed;
+    border-color: #2f80ed;
+}
+
+/* hover nhẹ */
+.notion-checkbox:hover {
+    border-color: #999;
+}

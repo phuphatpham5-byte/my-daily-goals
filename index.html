@@ -26,22 +26,32 @@
         
         <section class="draggable-module" draggable="true" id="module-goals">
             <div class="drag-handle">☰ Mục Tiêu & Active Recall</div>
-            <div class="controls" style="align-items: flex-end;">
-                <div class="input-group">
-                    <label>Từ ngày (Mặc định):</label>
-                    <input type="date" id="date-picker">
-                </div>
-                <div class="input-group">
-                    <label style="color: var(--primary-color); font-weight: bold;">Đến ngày (Tạo Tracking):</label>
-                    <input type="date" id="end-date-picker">
-                </div>
-                <div class="add-goal-box" style="display: flex; gap: 10px;">
-                    <label id="goal-img-label" for="goal-image-input" class="img-upload-btn" title="Đính kèm ảnh">🖼️</label>
-                    <input type="file" id="goal-image-input" accept="image/*" style="display: none;">
-                    <input type="text" id="goal-input" placeholder="Nhập mục tiêu mới...">
-                    <button id="add-btn">Thêm</button>
-                </div>
-            </div>
+            <div class="controls">
+
+    <div class="controls-top">
+        <div class="input-group">
+            <label>Từ ngày (Mặc định):</label>
+            <input type="date" id="date-picker">
+        </div>
+
+        <div class="input-group">
+            <label style="color: var(--primary-color); font-weight: bold;">
+                Đến ngày (Tạo Tracking):
+            </label>
+            <input type="date" id="end-date-picker">
+        </div>
+    </div>
+
+    <div class="controls-bottom">
+        <label id="goal-img-label" for="goal-image-input" class="img-upload-btn">🖼️</label>
+        <input type="file" id="goal-image-input" accept="image/*" style="display:none">
+
+        <input type="text" id="goal-input" placeholder="Nhập mục tiêu mới...">
+
+        <button id="add-btn">Thêm</button>
+    </div>
+
+</div>
             <div id="recall-notice" class="hidden">
                 <strong>🧠 Active Recall Hôm Nay:</strong>
                 <ul id="recall-list"></ul>

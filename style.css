@@ -113,7 +113,6 @@ button:hover { filter: brightness(1.2); transform: scale(1.05); }
 .habit-name-cell { text-align: left !important; font-weight: bold; min-width: 180px !important; position: sticky; left: 0; background: var(--bg-color); z-index: 2; border-right: 2px solid rgba(255,255,255,0.2) !important; box-shadow: 2px 0 5px rgba(0,0,0,0.3); }
 .habit-progress-cell { font-weight: bold; color: #4CAF50; min-width: 80px; }
 .habit-checkbox { cursor: pointer; transform: scale(1.3); margin: 0; }
-/* --- GIỮ NGUYÊN TOÀN BỘ CODE CŨ, THÊM CÁC DÒNG SAU --- */
 
 #drag-container { 
     display: flex; 

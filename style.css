@@ -187,3 +187,13 @@ footer { text-align: center; margin-top: 30px; }
 .notion-checkbox:hover {
     border-color: #999;
 }
+.card > div:first-child {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card.completed h4 {
+    text-decoration: line-through;
+    opacity: 0.6;
+}

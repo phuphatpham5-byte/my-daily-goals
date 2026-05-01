@@ -126,31 +126,40 @@ footer { text-align: center; margin-top: 30px; }
 .card > div:first-child { display: flex; justify-content: space-between; align-items: center; }
 .card.completed h4 { text-decoration: line-through; opacity: 0.6; }
 
-
 /* =========================================================================
-   TÍNH NĂNG MỚI: TỰ ĐỘNG CO BÓP & CHIA CỘT MỤC TIÊU ĐỂ TỐI ƯU KHÔNG GIAN
+   TÍNH NĂNG CŨ: TỰ ĐỘNG CO BÓP & CHIA CỘT MỤC TIÊU ĐỂ TỐI ƯU KHÔNG GIAN
 ========================================================================= */
-
-/* Biến danh sách mục tiêu thành lưới động, tự nhảy cột dựa vào chiều rộng hiện có */
 #goal-container.grid-container {
     display: grid;
-    /* Chia cột tự động: Mỗi cột rộng tối thiểu 260px, tối đa lấp đầy chỗ trống */
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
     gap: 15px;
-    align-items: start; /* Các thẻ không bị kéo dài bằng nhau gây lãng phí chiều dọc */
+    align-items: start; 
 }
-
-/* Ép thẻ mục tiêu hiển thị gọn gàng, nội dung bên trong được chống tràn */
 .card {
-    height: fit-content;    /* Thẻ chỉ cao vừa đủ với nội dung bên trong */
-    word-break: break-word; /* Chống tràn chữ ra khỏi khung nếu gõ chữ quá dài */
+    height: fit-content;    
+    word-break: break-word; 
     display: flex;
     flex-direction: column;
-    gap: 8px; /* Tối ưu lại khoảng cách giữa chữ, checkbox, và nút ôn tập */
+    gap: 8px; 
 }
-
-/* Đẩy nhẹ nút Checkbox để không bị dính sát vào chữ khi bị bóp ngang */
 .card > div:first-child {
     gap: 15px;
     align-items: flex-start;
+}
+
+/* =========================================================================
+   TÍNH NĂNG MỚI: HIỆU ỨNG CHỌN FLASHCARD NGẪU NHIÊN
+========================================================================= */
+@keyframes randomPop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.08); z-index: 100; }
+    100% { transform: scale(1); z-index: 100; }
+}
+.flashcard.highlight-random {
+    animation: randomPop 1.5s ease-in-out forwards;
+}
+.flashcard.highlight-random .fc-front, 
+.flashcard.highlight-random .fc-back {
+    border: 3px solid #ff9800 !important;
+    box-shadow: 0 0 25px rgba(255, 152, 0, 0.8) !important;
 }

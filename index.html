@@ -39,7 +39,11 @@
                     <label style="font-size: 0.75rem; color: var(--primary-color); font-weight: bold;">Đến ngày (Tạo Tracking):</label>
                     <input type="date" id="end-date-picker">
                 </div>
-                <div class="add-goal-box" style="margin-top: 18px;">
+                
+                <div class="add-goal-box" style="margin-top: 18px; display: flex; gap: 10px;">
+                    <label id="goal-img-label" for="goal-image-input" class="img-upload-btn" title="Đính kèm ảnh">🖼️</label>
+                    <input type="file" id="goal-image-input" accept="image/*" style="display: none;">
+                    
                     <input type="text" id="goal-input" placeholder="Nhập mục tiêu mới...">
                     <button id="add-btn">Thêm</button>
                 </div>
@@ -100,9 +104,17 @@
         <section class="draggable-module" draggable="true" id="module-flashcards">
             <div class="drag-handle">☰ Flashcards & Ôn Tập</div>
             <div class="resize-handle"></div>
-            <div class="controls">
-                <input type="text" id="fc-q" placeholder="Nhập câu hỏi...">
-                <input type="text" id="fc-a" placeholder="Nhập câu trả lời/đáp án...">
+            <div class="controls" style="flex-wrap: wrap;">
+                <div class="fc-input-wrap">
+                    <label id="fc-q-img-label" for="fc-q-img" class="img-upload-btn" title="Ảnh câu hỏi">🖼️</label>
+                    <input type="file" id="fc-q-img" accept="image/*" style="display: none;">
+                    <input type="text" id="fc-q" placeholder="Nhập câu hỏi...">
+                </div>
+                <div class="fc-input-wrap">
+                    <label id="fc-a-img-label" for="fc-a-img" class="img-upload-btn" title="Ảnh đáp án">🖼️</label>
+                    <input type="file" id="fc-a-img" accept="image/*" style="display: none;">
+                    <input type="text" id="fc-a" placeholder="Nhập câu trả lời/đáp án...">
+                </div>
                 <button id="add-fc-btn">Tạo Thẻ</button>
             </div>
             <p style="text-align:center; margin-bottom: 15px;">Tổng số Flashcard: <strong id="fc-count" style="color:var(--primary-color)">0</strong></p>

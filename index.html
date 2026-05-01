@@ -21,7 +21,7 @@
 
     <header>
         <h1>My Dashboard 🔥</h1>
-        <p>Kéo thả các khối (☰) để sắp xếp giao diện</p>
+        <p>Kéo thả các khối (☰) để sắp xếp giao diện. Kéo mép phải/dưới để thay đổi kích thước.</p>
     </header>
 
     <div id="drag-container">
@@ -30,17 +30,17 @@
             <div class="drag-handle">☰ Mục Tiêu & Active Recall</div>
             <div class="resize-handle"></div>
             
-            <div class="controls" style="align-items: center;">
-                <div style="display: flex; flex-direction: column; gap: 4px; text-align: left;">
-                    <label style="font-size: 0.75rem; color: #ccc;">Từ ngày (Mặc định):</label>
+            <div class="controls" style="align-items: flex-end;">
+                <div class="input-group">
+                    <label>Từ ngày (Mặc định):</label>
                     <input type="date" id="date-picker">
                 </div>
-                <div style="display: flex; flex-direction: column; gap: 4px; text-align: left;">
-                    <label style="font-size: 0.75rem; color: var(--primary-color); font-weight: bold;">Đến ngày (Tạo Tracking):</label>
+                <div class="input-group">
+                    <label style="color: var(--primary-color); font-weight: bold;">Đến ngày (Tạo Tracking):</label>
                     <input type="date" id="end-date-picker">
                 </div>
                 
-                <div class="add-goal-box" style="margin-top: 18px; display: flex; gap: 10px;">
+                <div class="add-goal-box" style="display: flex; gap: 10px;">
                     <label id="goal-img-label" for="goal-image-input" class="img-upload-btn" title="Đính kèm ảnh">🖼️</label>
                     <input type="file" id="goal-image-input" accept="image/*" style="display: none;">
                     
@@ -54,38 +54,48 @@
                 <ul id="recall-list"></ul>
             </div>
 
-            <main id="goal-container" class="grid-container"></main>
+            <main id="goal-container" class="grid-container flex-grow-area"></main>
+            
+            <div class="resize-handle"></div>
+            <div class="resize-handle-y"></div>
+            <div class="resize-handle-corner"></div>
         </section>
 
         <section class="draggable-module" draggable="true" id="module-habits">
             <div class="drag-handle">☰ Tiến Độ Mục Tiêu Dài Hạn (Habit Tracker)</div>
-            <div class="resize-handle"></div>
             <p style="font-size:0.85rem; color:#aaa; margin-bottom: 10px;">*Tạo mục tiêu có kèm <strong>Đến ngày</strong> ở bảng trên để tracking tự động tại đây.</p>
-            <div class="habit-table-container">
+            <div class="habit-table-container flex-grow-area">
                 <table id="habit-table"></table>
             </div>
+            
+            <div class="resize-handle"></div>
+            <div class="resize-handle-y"></div>
+            <div class="resize-handle-corner"></div>
         </section>
 
         <section class="draggable-module" draggable="true" id="module-sheets">
             <div class="drag-handle">☰ Bảng Thống Kê Cá Nhân</div>
-            <div class="resize-handle"></div>
             <div class="sheet-controls">
                 <button onclick="sheetAddRow()">+ Thêm Hàng</button>
                 <button onclick="sheetAddCol()">+ Thêm Cột</button>
-                <button onclick="calculateAverage()" class="btn-calc">Tính Điểm Trung Bình</button>
+                <button onclick="calculateAverage()" class="btn-calc">📊 Tính Điểm Trung Bình</button>
             </div>
-            <div class="table-responsive">
+            <div class="table-responsive flex-grow-area">
                 <table id="mini-sheet"></table>
             </div>
+            
+            <div class="resize-handle"></div>
+            <div class="resize-handle-y"></div>
+            <div class="resize-handle-corner"></div>
         </section>
 
         <section class="draggable-module" draggable="true" id="module-wheel">
             <div class="drag-handle">☰ Vòng Quay May Mắn</div>
             
-            <div class="wheel-split-layout">
+            <div class="wheel-split-layout flex-grow-area">
                 <div class="wheel-left">
                     <label for="wheel-items" style="margin-bottom:8px; font-weight:bold;">Danh sách vòng quay (Mỗi dòng 1 mục):</label>
-                    <textarea id="wheel-items" rows="8" placeholder="Ăn phở&#10;Học code&#10;Ngủ nướng"></textarea>
+                    <textarea id="wheel-items" placeholder="Ăn phở&#10;Học code&#10;Ngủ nướng"></textarea>
                     <button onclick="updateWheel()" style="margin-top:10px;">Cập nhật vòng quay</button>
                 </div>
 
@@ -94,16 +104,18 @@
                         <div id="wheel"></div>
                         <div class="wheel-pointer">▼</div>
                     </div>
-                    <button id="spin-btn" onclick="spinWheel()">QUAY</button>
+                    <button id="spin-btn" onclick="spinWheel()">QUAY!</button>
                     <p id="wheel-result"></p>
                 </div>
             </div>
+            
             <div class="resize-handle"></div>
+            <div class="resize-handle-y"></div>
+            <div class="resize-handle-corner"></div>
         </section>
 
         <section class="draggable-module" draggable="true" id="module-flashcards">
             <div class="drag-handle">☰ Flashcards & Ôn Tập</div>
-            <div class="resize-handle"></div>
             <div class="controls" style="flex-wrap: wrap;">
                 <div class="fc-input-wrap">
                     <label id="fc-q-img-label" for="fc-q-img" class="img-upload-btn" title="Ảnh câu hỏi">🖼️</label>
@@ -118,12 +130,15 @@
                 <button id="add-fc-btn">Tạo Thẻ</button>
             </div>
             <p style="text-align:center; margin-bottom: 15px;">Tổng số Flashcard: <strong id="fc-count" style="color:var(--primary-color)">0</strong></p>
-            <div id="fc-container" class="fc-grid"></div>
+            <div id="fc-container" class="fc-grid flex-grow-area"></div>
+            
+            <div class="resize-handle"></div>
+            <div class="resize-handle-y"></div>
+            <div class="resize-handle-corner"></div>
         </section>
 
         <section class="draggable-module" draggable="true" id="module-pomodoro">
             <div class="drag-handle">☰ Đồng Hồ Pomodoro</div>
-            <div class="resize-handle"></div>
             <div class="pomo-settings">
                 <label>Giờ Học: <select id="pomo-work-sel">
                     <option value="25">25 phút</option>
@@ -139,7 +154,7 @@
                     <option value="15">15 phút</option>
                 </select></label>
             </div>
-            <div class="pomo-timers">
+            <div class="pomo-timers flex-grow-area">
                 <div class="timer-box active" id="box-work">
                     <h4>Đang Học</h4>
                     <div class="svg-container">
@@ -166,8 +181,23 @@
                 <button id="pomo-pause">Tạm Dừng</button>
                 <button id="pomo-reset" style="background:var(--coral-red)">Đặt Lại</button>
             </div>
+            
+            <div class="resize-handle"></div>
+            <div class="resize-handle-y"></div>
+            <div class="resize-handle-corner"></div>
         </section>
 
+    </div>
+
+    <div id="image-viewer-modal">
+        <div class="iv-controls">
+            <button onclick="zoomImage(0.2)" title="Phóng to">🔍 +</button>
+            <button onclick="zoomImage(-0.2)" title="Thu nhỏ">🔍 -</button>
+            <button onclick="closeImageModal()" style="background: var(--coral-red);" title="Đóng">❌</button>
+        </div>
+        <div class="iv-content">
+            <img id="iv-image" src="" alt="Zoomed view">
+        </div>
     </div>
 
     <footer>

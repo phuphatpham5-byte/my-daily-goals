@@ -292,24 +292,31 @@ function addFC() {
     
     saveData(); renderFC(); 
 }
-function renderFC() { 
-    const container = document.getElementById('fc-container'); 
-    document.getElementById('fc-count').innerText = appData.flashcards.length; 
-    container.innerHTML = ''; 
-    if(appData.flashcards.length === 0) { container.innerHTML = '<p style="text-align:center; color:#888; grid-column: 1/-1;">Chưa có thẻ nào. Hãy tạo thẻ đầu tiên!</p>'; return; } 
-    
-    appData.flashcards.forEach(fc => { 
-        const card = document.createElement('div'); 
-        card.className = 'flashcard'; 
-        card.onclick = (e) => { if(e.target.tagName !== 'BUTTON') card.classList.toggle('flipped'); }; 
+function renderFC() {
+    const c = document.getElementById('fc-container'); document.getElementById('fc-count').innerText = appData.flashcards.length; c.innerHTML = '';
+    appData.flashcards.forEach(fc => {
+        const d = document.createElement('div'); d.className = 'flashcard';
         
-        // Render ẢNH FLASHCARD
-        let qImgHtml = fc.qImg ? `<img src="${fc.qImg}" class="fc-img">` : '';
-        let aImgHtml = fc.aImg ? `<img src="${fc.aImg}" class="fc-img">` : '';
+        // --- ĐÂY LÀ PHẦN CODE MỚI ĐƯỢC THÊM VÀO ---
+        const delBtn = `<button class="fc-delete-btn" onclick="removeFC('${fc.id}', event)" title="Xóa thẻ">🗑</button>`;
+        // ------------------------------------------
 
-        card.innerHTML = ` <div class="fc-inner"> <div class="fc-front">${fc.q} ${qImgHtml}</div> <div class="fc-back"> <div class="fc-back-text">${fc.a} ${aImgHtml}</div> <div class="fc-actions"> <button onclick="removeFC('${fc.id}', event)" style="background: var(--coral-red);">Đã hiểu</button> <button onclick="keepFC(event)" style="background: #4CAF50;">Nhớ nhớ</button> </div> </div> </div> `; 
-        container.appendChild(card); 
-    }); 
+        const qImg = fc.qImg ? `<div class="img-wrapper"><img src="${fc.qImg}" class="fc-img"><button class="view-img-btn" onclick="openImageModal('${fc.qImg}', event)">🔍</button></div>` : '';
+        const aImg = fc.aImg ? `<div class="img-wrapper"><img src="${fc.aImg}" class="fc-img"><button class="view-img-btn" onclick="openImageModal('${fc.aImg}', event)">🔍</button></div>` : '';
+        d.onclick = (e) => { if(e.target.tagName !== 'BUTTON') d.classList.toggle('flipped'); };
+        
+        // --- CHÚ Ý CHỖ NÀY: ${delBtn} ĐÃ ĐƯỢC CHÈN VÀO TRONG <div class="fc-front"> ---
+        d.innerHTML = `<div class="fc-inner">
+            <div class="fc-front">${delBtn}<strong>Q:</strong> ${fc.q} ${qImg}</div>
+            <div class="fc-back"><strong>A:</strong> ${fc.a} ${aImg}
+                <div class="fc-actions" style="margin-top:10px">
+                    <button onclick="removeFC('${fc.id}', event)" style="background:#ff6b6b">Đã hiểu</button>
+                    <button onclick="keepFC(event)" style="background:#4CAF50">Ôn lại</button>
+                </div>
+            </div>
+        </div>`;
+        c.appendChild(d);
+    });
 }
 function removeFC(id, e) { e.stopPropagation(); appData.flashcards = appData.flashcards.filter(f => f.id !== id); saveData(); renderFC(); }
 function keepFC(e) { e.stopPropagation(); e.target.closest('.flashcard').classList.remove('flipped'); }

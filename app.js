@@ -49,7 +49,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('color-bg').addEventListener('input', updateTheme);
     document.getElementById('color-primary').addEventListener('input', updateTheme);
     document.getElementById('color-text').addEventListener('input', updateTheme);
+    
+    // Lắng nghe sự kiện thêm thẻ & random thẻ
     document.getElementById('add-fc-btn').addEventListener('click', addFC);
+    document.getElementById('random-fc-btn').addEventListener('click', pickRandomFC);
     
     document.getElementById('w-color-1').addEventListener('input', applyWheelColors);
     document.getElementById('w-color-2').addEventListener('input', applyWheelColors);
@@ -232,6 +235,26 @@ function renderFC() {
 function removeFC(id, e) { e.stopPropagation(); if(confirm("Xóa flashcard này?")) { appData.flashcards = appData.flashcards.filter(x => x.id !== id); saveData(); renderFC(); } }
 function keepFC(e) { e.stopPropagation(); e.target.closest('.flashcard').classList.remove('flipped'); }
 
+// --- TÍNH NĂNG MỚI: CHỌN THẺ NGẪU NHIÊN ---
+function pickRandomFC() {
+    if (!appData.flashcards || appData.flashcards.length === 0) return alert("Chưa có Flashcard nào để chọn!");
+    const cards = document.querySelectorAll('.flashcard');
+    if (cards.length === 0) return;
+    
+    // Xóa class highlight cũ
+    cards.forEach(c => c.classList.remove('highlight-random'));
+    
+    // Chọn ngẫu nhiên 1 thẻ
+    const randomIndex = Math.floor(Math.random() * cards.length);
+    const selectedCard = cards[randomIndex];
+    
+    // Tự động cuộn tới vị trí của thẻ đó
+    selectedCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    
+    // Delay nhẹ một chút để chờ scroll xong rồi mới phát sáng thẻ
+    setTimeout(() => selectedCard.classList.add('highlight-random'), 300);
+}
+
 // --- 8. ACTIVE RECALL ---
 function setRecall(id, title, days) {
     let img = null; Object.values(appData.goals).forEach(l => { let x = l.find(g => g.id === id); if(x && x.img) img = x.img; });
@@ -255,7 +278,6 @@ function applyWheelColors() {
     appData.wheelTheme.useCustom = true;
     appData.wheelTheme.color1 = document.getElementById('w-color-1').value;
     appData.wheelTheme.color2 = document.getElementById('w-color-2').value;
-    appData.wheelTheme.color2 = document.getElementById('w-color-3').value;
     appData.wheelTheme.textColor = document.getElementById('w-color-text').value;
     saveData(); drawWheel();
 }

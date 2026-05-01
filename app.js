@@ -40,9 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 function saveData() { localStorage.setItem('myDashboardData', JSON.stringify(appData)); }
 
-/* ==========================================
-   CẬP NHẬT: XỬ LÝ ẢNH & UPLOAD CHẤT LƯỢNG CAO
-========================================== */
+// XỬ LÝ ẢNH & UPLOAD
 function setupImageUpload(inputId, labelId, callback) {
     const input = document.getElementById(inputId);
     input.addEventListener('change', (e) => {
@@ -51,20 +49,11 @@ function setupImageUpload(inputId, labelId, callback) {
             const img = new Image();
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                // TĂNG GIỚI HẠN RESOLUTION LÊN 2000px ĐỂ GIỮ CHỮ SẮC NÉT
-                const MAX = 2000; 
-                let w = img.width, h = img.height;
+                const MAX = 400; let w = img.width, h = img.height;
                 if (w > h) { if (w > MAX) { h *= MAX/w; w = MAX; } } else { if (h > MAX) { w *= MAX/h; h = MAX; } }
                 canvas.width = w; canvas.height = h;
-                
-                const ctx = canvas.getContext('2d');
-                // Tô nền trắng đề phòng ảnh PNG bị đen nền khi nén thành JPG
-                ctx.fillStyle = "#ffffff";
-                ctx.fillRect(0, 0, w, h);
-                ctx.drawImage(img, 0, 0, w, h);
-                
-                // TĂNG QUALITY LÊN 0.95 (Rất cao) để không bị nhòe chữ
-                callback(canvas.toDataURL('image/jpeg', 0.95));
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                callback(canvas.toDataURL('image/jpeg', 0.7));
                 document.getElementById(labelId).style.background = 'var(--primary-color)';
             };
             img.src = event.target.result;
@@ -160,6 +149,7 @@ function renderFC() {
     const c = document.getElementById('fc-container'); document.getElementById('fc-count').innerText = appData.flashcards.length; c.innerHTML = '';
     appData.flashcards.forEach(fc => {
         const d = document.createElement('div'); d.className = 'flashcard';
+        // TÍNH NĂNG MỚI: Thêm nút xóa ở mặt trước
         const delBtn = `<button class="fc-delete-btn" onclick="removeFC('${fc.id}', event)" title="Xóa thẻ">🗑</button>`;
         const qImg = fc.qImg ? `<div class="img-wrapper"><img src="${fc.qImg}" class="fc-img"><button class="view-img-btn" onclick="openImageModal('${fc.qImg}', event)">🔍</button></div>` : '';
         const aImg = fc.aImg ? `<div class="img-wrapper"><img src="${fc.aImg}" class="fc-img"><button class="view-img-btn" onclick="openImageModal('${fc.aImg}', event)">🔍</button></div>` : '';

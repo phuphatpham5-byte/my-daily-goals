@@ -16,6 +16,33 @@ if (!appData.layout.includes('module-habits')) appData.layout.splice(1, 0, 'modu
 
 let currentDate = new Date().toISOString().split('T')[0];
 
+/* --- TÍNH NĂNG MỚI: BIẾN TOÀN CỤC LƯU ẢNH TẠM THỜI VÀ XỬ LÝ ẢNH --- */
+let tempGoalImg = null;
+let tempFCQImg = null;
+let tempFCAImg = null;
+
+// Hàm thu nhỏ và nén ảnh sang Base64 để chống lag localStorage
+function processImage(file, callback) {
+    if (!file) return callback(null);
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            const MAX = 400; // Giới hạn kích thước ảnh 400px
+            let w = img.width, h = img.height;
+            if (w > h) { if (w > MAX) { h *= MAX / w; w = MAX; } }
+            else { if (h > MAX) { w *= MAX / h; h = MAX; } }
+            canvas.width = w; canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, w, h);
+            callback(canvas.toDataURL('image/jpeg', 0.7)); // Nén JPEG 70% chất lượng
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     applyTheme(); restoreLayout(); initDragAndDrop();
     document.getElementById('date-picker').value = currentDate;
@@ -30,6 +57,26 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('color-primary').addEventListener('input', updateTheme);
     document.getElementById('color-text').addEventListener('input', updateTheme);
     document.getElementById('add-fc-btn').addEventListener('click', addFC);
+
+    // THÊM TÍNH NĂNG MỚI: Lắng nghe sự kiện Upload Ảnh và chuyển màu nút
+    document.getElementById('goal-image-input').addEventListener('change', (e) => {
+        processImage(e.target.files[0], base64 => {
+            tempGoalImg = base64;
+            document.getElementById('goal-img-label').style.background = 'var(--primary-color)';
+        });
+    });
+    document.getElementById('fc-q-img').addEventListener('change', (e) => {
+        processImage(e.target.files[0], base64 => {
+            tempFCQImg = base64;
+            document.getElementById('fc-q-img-label').style.background = 'var(--primary-color)';
+        });
+    });
+    document.getElementById('fc-a-img').addEventListener('change', (e) => {
+        processImage(e.target.files[0], base64 => {
+            tempFCAImg = base64;
+            document.getElementById('fc-a-img-label').style.background = 'var(--primary-color)';
+        });
+    });
 });
 
 function saveData() { localStorage.setItem('myDashboardData', JSON.stringify(appData)); }
@@ -42,38 +89,48 @@ function initDragAndDrop() { const draggables = document.querySelectorAll('.drag
 function getDragAfterElement(container, y) { const draggableElements = [...container.querySelectorAll('.draggable-module:not(.dragging)')]; return draggableElements.reduce((closest, child) => { const box = child.getBoundingClientRect(); const offset = y - box.top - box.height / 2; if (offset < 0 && offset > closest.offset) return { offset: offset, element: child }; else return closest; }, { offset: Number.NEGATIVE_INFINITY }).element; }
 function restoreLayout() { const container = document.getElementById('drag-container'); appData.layout.forEach(id => { const el = document.getElementById(id); if(el) container.appendChild(el); }); }
 
-/* --- TÍNH NĂNG MỚI: TÍCH HỢP HABIT TRACKING TRONG HÀM TẠO GOAL (CŨ) --- */
+/* --- HABIT TRACKING TRONG HÀM TẠO GOAL --- */
 function addGoal() {
     const title = document.getElementById('goal-input').value.trim();
-    if (!title) return;
+    if (!title && !tempGoalImg) return; // Cho phép thêm mục tiêu chỉ có ảnh
 
     const endDateInput = document.getElementById('end-date-picker');
     const endDate = endDateInput ? endDateInput.value : '';
 
-    // KIỂM TRA: NẾU CÓ ĐIỀN ĐẾN NGÀY -> ĐẨY VÀO HABIT TRACKER
     if (endDate && endDate >= currentDate) {
         appData.habits.push({
             id: 'h_' + Date.now(),
-            title: title,
+            title: title || "Mục tiêu (Có ảnh)",
             startDate: currentDate,
             endDate: endDate,
-            progressMap: {} // Lưu trạng thái đánh dấu của từng ngày
+            progressMap: {},
+            img: tempGoalImg // Đính kèm ảnh
         });
-        if(endDateInput) endDateInput.value = ''; // Reset
+        if(endDateInput) endDateInput.value = ''; 
         document.getElementById('goal-input').value = '';
+        
+        // Đặt lại state ảnh
+        tempGoalImg = null; 
+        document.getElementById('goal-image-input').value = ''; 
+        document.getElementById('goal-img-label').style.background = 'rgba(255,255,255,0.1)';
+        
         saveData(); 
         renderHabits();
-        return; // Dừng lại, không chạy code cũ bên dưới
+        return; 
     }
 
-    // NẾU KHÔNG CÓ ĐẾN NGÀY -> CHẠY 100% CODE CŨ ĐỂ TẠO MỤC TIÊU HÀNG NGÀY
     if (!appData.goals[currentDate]) appData.goals[currentDate] = [];
-    appData.goals[currentDate].push({ id: Date.now().toString(), title, completed: false });
+    appData.goals[currentDate].push({ id: Date.now().toString(), title: title || "Mục tiêu", completed: false, img: tempGoalImg }); // Đính kèm ảnh
+    
     document.getElementById('goal-input').value = '';
+    tempGoalImg = null; 
+    document.getElementById('goal-image-input').value = '';
+    document.getElementById('goal-img-label').style.background = 'rgba(255,255,255,0.1)';
+    
     saveData(); renderGoals();
 }
 
-/* --- TÍNH NĂNG MỚI: RENDER BẢNG TIẾN TRÌNH HABIT TRACKER GIỐNG NOTION --- */
+/* --- RENDER BẢNG TIẾN TRÌNH HABIT TRACKER --- */
 function renderHabits() {
     const container = document.getElementById('habit-table');
     if (!container) return;
@@ -84,7 +141,6 @@ function renderHabits() {
         return;
     }
 
-    // Tìm khoảng thời gian nhỏ nhất và lớn nhất để vẽ số cột ngày
     let minDate = appData.habits[0].startDate;
     let maxDate = appData.habits[0].endDate;
     appData.habits.forEach(h => {
@@ -97,7 +153,6 @@ function renderHabits() {
     let maxD = new Date(maxDate + "T00:00:00");
     let curr = new Date(minD);
     
-    // Tạo mảng các ngày để làm Header bảng
     while(curr <= maxD) {
         let y = curr.getFullYear();
         let m = String(curr.getMonth() + 1).padStart(2, '0');
@@ -106,7 +161,6 @@ function renderHabits() {
         curr.setDate(curr.getDate() + 1);
     }
 
-    // Vẽ Header
     let thead = document.createElement('thead');
     let hr = document.createElement('tr');
     hr.innerHTML = `<th class="habit-name-cell">My Habits</th>`;
@@ -120,7 +174,6 @@ function renderHabits() {
     thead.appendChild(hr);
     container.appendChild(thead);
 
-    // Vẽ Body
     let tbody = document.createElement('tbody');
     appData.habits.forEach(habit => {
         let tr = document.createElement('tr');
@@ -131,19 +184,17 @@ function renderHabits() {
 
         dates.forEach(d => {
             let td = document.createElement('td');
-            // Nếu ngày đang vẽ nằm trong khoảng thời gian của Habit này
             if (d >= habit.startDate && d <= habit.endDate) {
                 totalDaysInHabit++;
                 let isChecked = habit.progressMap[d] ? 'checked' : '';
                 if(isChecked) checkedDays++;
                 td.innerHTML = `<input type="checkbox" class="habit-checkbox" ${isChecked} onchange="toggleHabit('${habit.id}', '${d}', this.checked)">`;
             } else {
-                td.innerHTML = `<span style="color:#444">-</span>`; // Ngoài vùng
+                td.innerHTML = `<span style="color:#444">-</span>`; 
             }
             tr.appendChild(td);
         });
 
-        // Tính %
         let pct = totalDaysInHabit > 0 ? Math.round((checkedDays / totalDaysInHabit) * 100) : 0;
         tr.innerHTML += `<td class="habit-progress-cell">${pct}%</td>`;
         tr.innerHTML += `<td><button onclick="deleteHabit('${habit.id}')" style="background:transparent; color: var(--coral-red);">🗑</button></td>`;
@@ -162,12 +213,51 @@ function deleteHabit(habitId) {
     }
 }
 
-/* --- RECALL, SHEETS, WHEEL (GIỮ NGUYÊN CODE CŨ BÊN DƯỚI) --- */
+/* --- RECALL & GOALS (CÓ RENDER ẢNH) --- */
 function toggleGoal(id, isCompleted) { const goal = appData.goals[currentDate].find(g => g.id === id); if(goal) { goal.completed = isCompleted; saveData(); renderGoals(); } }
-function setRecall(id, title, days) { if(!days) return; const reviewDate = new Date(); reviewDate.setDate(reviewDate.getDate() + parseInt(days)); const dateStr = reviewDate.toISOString().split('T')[0]; appData.recall.push({ id: Date.now().toString(), title, dateToReview: dateStr }); saveData(); alert(`Đã lên lịch ôn tập "${title}" vào ngày ${dateStr}`); }
-function checkActiveRecall() { const todayStr = new Date().toISOString().split('T')[0]; const dueRecalls = appData.recall.filter(r => r.dateToReview <= todayStr); const noticeDiv = document.getElementById('recall-notice'); const listUl = document.getElementById('recall-list'); if(dueRecalls.length > 0) { noticeDiv.classList.remove('hidden'); listUl.innerHTML = dueRecalls.map(r => `<li>${r.title} <button onclick="removeRecall('${r.id}')" style="padding:2px 5px; font-size:0.7rem">Xong</button></li>`).join(''); } else { noticeDiv.classList.add('hidden'); } }
+function setRecall(id, title, days) { 
+    if(!days) return; 
+    
+    // TÌM ẢNH GỐC CỦA MỤC TIÊU NÀY ĐỂ KÈM VÀO ACTIVE RECALL
+    let imgData = null;
+    Object.values(appData.goals).forEach(dayList => {
+        let g = dayList.find(x => x.id === id);
+        if (g && g.img) imgData = g.img;
+    });
+
+    const reviewDate = new Date(); reviewDate.setDate(reviewDate.getDate() + parseInt(days)); 
+    const dateStr = reviewDate.toISOString().split('T')[0]; 
+    appData.recall.push({ id: Date.now().toString(), title, dateToReview: dateStr, img: imgData }); 
+    saveData(); alert(`Đã lên lịch ôn tập "${title}" vào ngày ${dateStr}`); 
+}
+function checkActiveRecall() { 
+    const todayStr = new Date().toISOString().split('T')[0]; 
+    const dueRecalls = appData.recall.filter(r => r.dateToReview <= todayStr); 
+    const noticeDiv = document.getElementById('recall-notice'); 
+    const listUl = document.getElementById('recall-list'); 
+    if(dueRecalls.length > 0) { 
+        noticeDiv.classList.remove('hidden'); 
+        listUl.innerHTML = dueRecalls.map(r => {
+            let imgHtml = r.img ? `<img src="${r.img}" class="recall-img">` : ''; // Render ảnh Recall
+            return `<li>${r.title} ${imgHtml} <button onclick="removeRecall('${r.id}')" style="padding:2px 5px; font-size:0.7rem; float: right;">Xong</button><div style="clear:both;"></div></li>`;
+        }).join(''); 
+    } else { noticeDiv.classList.add('hidden'); } 
+}
 function removeRecall(id) { appData.recall = appData.recall.filter(r => r.id !== id); saveData(); checkActiveRecall(); }
-function renderGoals() { const container = document.getElementById('goal-container'); const goals = appData.goals[currentDate] || []; container.innerHTML = goals.length ? '' : '<p>Chưa có mục tiêu.</p>'; goals.forEach(goal => { const div = document.createElement('div'); div.className = `card ${goal.completed ? 'completed' : ''}`; let recallHtml = goal.completed ? `<select class="recall-select" onchange="setRecall('${goal.id}', '${goal.title}', this.value); this.value=''"><option value="">+ Lên lịch nhắc lại</option><option value="1">Nhắc lại sau 1 ngày</option><option value="3">Nhắc lại sau 3 ngày</option><option value="7">Nhắc lại sau 7 ngày</option></select>` : ''; div.innerHTML = `<div style="display:flex; justify-content:space-between"><h4>${goal.title}</h4><input type="checkbox" ${goal.completed ? 'checked' : ''} onchange="toggleGoal('${goal.id}', this.checked)"></div>${recallHtml}`; container.appendChild(div); }); }
+function renderGoals() { 
+    const container = document.getElementById('goal-container'); 
+    const goals = appData.goals[currentDate] || []; 
+    container.innerHTML = goals.length ? '' : '<p>Chưa có mục tiêu.</p>'; 
+    goals.forEach(goal => { 
+        const div = document.createElement('div'); div.className = `card ${goal.completed ? 'completed' : ''}`; 
+        let recallHtml = goal.completed ? `<select class="recall-select" onchange="setRecall('${goal.id}', '${goal.title}', this.value); this.value=''"><option value="">+ Lên lịch nhắc lại</option><option value="1">Nhắc lại sau 1 ngày</option><option value="3">Nhắc lại sau 3 ngày</option><option value="7">Nhắc lại sau 7 ngày</option></select>` : ''; 
+        let imgHtml = goal.img ? `<img src="${goal.img}" class="card-img">` : ''; // Render ảnh Goal
+        div.innerHTML = `<div style="display:flex; justify-content:space-between"><h4>${goal.title}</h4><input type="checkbox" ${goal.completed ? 'checked' : ''} onchange="toggleGoal('${goal.id}', this.checked)"></div>${imgHtml}${recallHtml}`; 
+        container.appendChild(div); 
+    }); 
+}
+
+/* --- SHEETS & WHEEL --- */
 function renderSheet() { const table = document.getElementById('mini-sheet'); table.innerHTML = ''; appData.sheetData.forEach((row, rIdx) => { const tr = document.createElement('tr'); row.forEach((cell, cIdx) => { const td = document.createElement(rIdx === 0 ? 'th' : 'td'); const input = document.createElement('input'); input.value = cell; input.onchange = (e) => { appData.sheetData[rIdx][cIdx] = e.target.value; saveData(); }; td.appendChild(input); tr.appendChild(td); }); table.appendChild(tr); }); }
 function sheetAddRow() { const colCount = appData.sheetData[0].length; appData.sheetData.push(new Array(colCount).fill("")); saveData(); renderSheet(); }
 function sheetAddCol() { appData.sheetData.forEach(row => row.push("")); saveData(); renderSheet(); }
@@ -176,10 +266,55 @@ function updateWheel() { const itemsText = document.getElementById('wheel-items'
 let currentDegree = 0;
 function drawWheel() { const wheel = document.getElementById('wheel'); wheel.innerHTML = ''; const colors = ['#f44336', '#2196f3', '#ffeb3b', '#4caf50', '#9c27b0', '#ff9800', '#00bcd4', '#e91e63']; const total = appData.wheelItems.length; if (total === 0) { wheel.style.background = 'transparent'; return; } let gradientParts = []; const degreePerItem = 360 / total; for (let i = 0; i < total; i++) { const start = i * degreePerItem; const end = (i + 1) * degreePerItem; gradientParts.push(`${colors[i % colors.length]} ${start}deg ${end}deg`); const midAngle = start + (degreePerItem / 2); const wrapper = document.createElement('div'); wrapper.className = 'wheel-text-wrapper'; let rotateAngle = midAngle - 90; wrapper.style.transform = `rotate(${rotateAngle}deg)`; const textSpan = document.createElement('span'); textSpan.className = 'wheel-text'; textSpan.innerText = appData.wheelItems[i]; let actualRotate = rotateAngle % 360; if (actualRotate < 0) actualRotate += 360; if (actualRotate > 90 && actualRotate < 270) { textSpan.style.display = 'inline-block'; textSpan.style.transform = 'rotate(180deg)'; wrapper.style.justifyContent = 'flex-start'; wrapper.style.paddingLeft = '20px'; wrapper.style.paddingRight = '0'; } wrapper.appendChild(textSpan); wheel.appendChild(wrapper); } wheel.style.background = `conic-gradient(${gradientParts.join(', ')})`; }
 function spinWheel() { if(appData.wheelItems.length === 0) return; const btn = document.getElementById('spin-btn'); btn.disabled = true; document.getElementById('wheel-result').innerText = 'Đang quay...'; const extraSpins = (Math.floor(Math.random() * 5) + 5) * 360; const randomDegree = Math.floor(Math.random() * 360); currentDegree += extraSpins + randomDegree; const wheel = document.getElementById('wheel'); wheel.style.transform = `rotate(${currentDegree}deg)`; setTimeout(() => { const actualDegree = currentDegree % 360; const degreePerItem = 360 / appData.wheelItems.length; const index = Math.floor((360 - actualDegree) / degreePerItem) % appData.wheelItems.length; document.getElementById('wheel-result').innerText = `🎉 Kết quả: ${appData.wheelItems[index]}`; btn.disabled = false; }, 4000); }
-function addFC() { const q = document.getElementById('fc-q').value.trim(); const a = document.getElementById('fc-a').value.trim(); if(!q || !a) return alert("Vui lòng nhập đủ Câu hỏi và Đáp án!"); appData.flashcards.push({ id: Date.now().toString(), q: q, a: a }); document.getElementById('fc-q').value = ''; document.getElementById('fc-a').value = ''; saveData(); renderFC(); }
-function renderFC() { const container = document.getElementById('fc-container'); document.getElementById('fc-count').innerText = appData.flashcards.length; container.innerHTML = ''; if(appData.flashcards.length === 0) { container.innerHTML = '<p style="text-align:center; color:#888; grid-column: 1/-1;">Chưa có thẻ nào. Hãy tạo thẻ đầu tiên!</p>'; return; } appData.flashcards.forEach(fc => { const card = document.createElement('div'); card.className = 'flashcard'; card.onclick = (e) => { if(e.target.tagName !== 'BUTTON') card.classList.toggle('flipped'); }; card.innerHTML = ` <div class="fc-inner"> <div class="fc-front">${fc.q}</div> <div class="fc-back"> <div class="fc-back-text">${fc.a}</div> <div class="fc-actions"> <button onclick="removeFC('${fc.id}', event)" style="background: var(--coral-red);">Đã hiểu</button> <button onclick="keepFC(event)" style="background: #4CAF50;">Nhớ nhớ</button> </div> </div> </div> `; container.appendChild(card); }); }
+
+/* --- FLASHCARDS (CÓ RENDER ẢNH) --- */
+function addFC() { 
+    const q = document.getElementById('fc-q').value.trim(); 
+    const a = document.getElementById('fc-a').value.trim(); 
+    if(!q && !tempFCQImg && !a && !tempFCAImg) return alert("Vui lòng nhập/chọn đủ Câu hỏi và Đáp án!"); 
+    
+    appData.flashcards.push({ 
+        id: Date.now().toString(), 
+        q: q, 
+        a: a,
+        qImg: tempFCQImg,
+        aImg: tempFCAImg
+    }); 
+    
+    // Reset Data
+    document.getElementById('fc-q').value = ''; 
+    document.getElementById('fc-a').value = ''; 
+    document.getElementById('fc-q-img').value = ''; 
+    document.getElementById('fc-a-img').value = ''; 
+    tempFCQImg = null; tempFCAImg = null;
+    document.getElementById('fc-q-img-label').style.background = 'rgba(255,255,255,0.1)';
+    document.getElementById('fc-a-img-label').style.background = 'rgba(255,255,255,0.1)';
+    
+    saveData(); renderFC(); 
+}
+function renderFC() { 
+    const container = document.getElementById('fc-container'); 
+    document.getElementById('fc-count').innerText = appData.flashcards.length; 
+    container.innerHTML = ''; 
+    if(appData.flashcards.length === 0) { container.innerHTML = '<p style="text-align:center; color:#888; grid-column: 1/-1;">Chưa có thẻ nào. Hãy tạo thẻ đầu tiên!</p>'; return; } 
+    
+    appData.flashcards.forEach(fc => { 
+        const card = document.createElement('div'); 
+        card.className = 'flashcard'; 
+        card.onclick = (e) => { if(e.target.tagName !== 'BUTTON') card.classList.toggle('flipped'); }; 
+        
+        // Render ẢNH FLASHCARD
+        let qImgHtml = fc.qImg ? `<img src="${fc.qImg}" class="fc-img">` : '';
+        let aImgHtml = fc.aImg ? `<img src="${fc.aImg}" class="fc-img">` : '';
+
+        card.innerHTML = ` <div class="fc-inner"> <div class="fc-front">${fc.q} ${qImgHtml}</div> <div class="fc-back"> <div class="fc-back-text">${fc.a} ${aImgHtml}</div> <div class="fc-actions"> <button onclick="removeFC('${fc.id}', event)" style="background: var(--coral-red);">Đã hiểu</button> <button onclick="keepFC(event)" style="background: #4CAF50;">Nhớ nhớ</button> </div> </div> </div> `; 
+        container.appendChild(card); 
+    }); 
+}
 function removeFC(id, e) { e.stopPropagation(); appData.flashcards = appData.flashcards.filter(f => f.id !== id); saveData(); renderFC(); }
 function keepFC(e) { e.stopPropagation(); e.target.closest('.flashcard').classList.remove('flipped'); }
+
+/* --- POMODORO (GIỮ NGUYÊN) --- */
 let pomoState = 'idle'; let pomoInterval; let timeRemaining = 0; let totalTime = 0; const CIRCUMFERENCE = 377;
 function initPomo() { document.getElementById('pomo-start').onclick = startPomo; document.getElementById('pomo-pause').onclick = pausePomo; document.getElementById('pomo-reset').onclick = resetPomo; document.getElementById('pomo-work-sel').onchange = resetPomo; document.getElementById('pomo-rest-sel').onchange = resetPomo; updatePomoDisplay(parseInt(document.getElementById('pomo-work-sel').value) * 60, 'work'); updatePomoDisplay(parseInt(document.getElementById('pomo-rest-sel').value) * 60, 'rest'); }
 function startPomo() { if(pomoState === 'idle') { pomoState = 'work'; totalTime = parseInt(document.getElementById('pomo-work-sel').value) * 60; timeRemaining = totalTime; document.getElementById('box-work').classList.add('active'); document.getElementById('box-rest').classList.remove('active'); } else if (pomoState === 'paused') { pomoState = document.getElementById('box-work').classList.contains('active') ? 'work' : 'rest'; } clearInterval(pomoInterval); pomoInterval = setInterval(pomoTick, 1000); }
@@ -195,7 +330,6 @@ if (!appData.moduleWidths) appData.moduleWidths = {};
 
 // Trong DOMContentLoaded, thêm gọi hàm initResizing()
 document.addEventListener('DOMContentLoaded', () => {
-    // ... các lệnh gọi cũ ...
     initResizing(); 
     applySavedWidths();
 });

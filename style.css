@@ -142,14 +142,12 @@ footer { text-align: center; margin-top: 30px; }
 /* ===== NOTION STYLE ===== */
 /* module */
 .draggable-module {
-    background: transparent;
     border: none;
     padding: 10px 0;
 }
 
 /* header module */
 .drag-handle {
-    background: transparent;
     padding: 6px 0;
     font-size: 16px;
     font-weight: 600;
@@ -157,7 +155,6 @@ footer { text-align: center; margin-top: 30px; }
 
 /* controls */
 .controls {
-    background: var(--card-bg);
     border: 1px solid var(--border-color);
     padding: 12px;
     border-radius: 8px;
@@ -165,21 +162,9 @@ footer { text-align: center; margin-top: 30px; }
 
 /* input */
 input, textarea, select {
-    background: #fff;
     border: 1px solid var(--border-color);
     color: var(--text-color);
 }
-
-input:focus, textarea:focus {
-    border-color: var(--primary-color);
-}
-
-/* button */
-button {
-    background: var(--primary-color);
-    color: #fff;
-}
-
 button:hover {
     filter: brightness(0.95);
     transform: none;
@@ -199,14 +184,12 @@ button:hover {
 
 /* recall */
 #recall-notice {
-    background: #fff8e1;
     border: 1px solid #f0e0a0;
     color: #5c4b00;
 }
 
 /* flashcard */
 .fc-front, .fc-back {
-    background: #fff;
     color: var(--text-color);
     border: 1px solid var(--border-color);
 }
@@ -216,21 +199,12 @@ button:hover {
     gap: 16px;
 }
 
-/* bảng */
-table {
-    background: #fff;
-}
-
-th {
-    background: #f1f1ef;
-}
 
 /* scrollbar nhẹ */
 ::-webkit-scrollbar {
     width: 6px;
 }
 ::-webkit-scrollbar-thumb {
-    background: #ccc;
     border-radius: 4px;
 }
 body {

@@ -189,7 +189,6 @@ function pomoTick() { timeRemaining--; if(timeRemaining < 0) { if(pomoState === 
 function updatePomoDisplay(seconds, type) { const m = Math.floor(seconds / 60).toString().padStart(2, '0'); const s = (seconds % 60).toString().padStart(2, '0'); document.getElementById(`time-${type}`).innerText = `${m}:${s}`; if(totalTime > 0 && timeRemaining <= totalTime) { const circle = document.getElementById(`ring-${type}`); const offset = CIRCUMFERENCE - (seconds / totalTime) * CIRCUMFERENCE; circle.style.strokeDashoffset = offset; } }
 
 document.getElementById('clear-btn').addEventListener('click', () => { if(confirm('CẢNH BÁO: Bạn có chắc chắn muốn xóa toàn bộ dữ liệu?')) { localStorage.removeItem('myDashboardData'); location.reload(); } });
-/* --- GIỮ NGUYÊN TOÀN BỘ CODE CŨ, BỔ SUNG CÁC LOGIC SAU --- */
 
 // Cập nhật appData để lưu thêm chiều rộng
 if (!appData.moduleWidths) appData.moduleWidths = {};

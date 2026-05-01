@@ -111,32 +111,62 @@ th { background: rgba(0,0,0,0.3); color: var(--primary-color); white-space: nowr
 .iv-controls button { padding: 12px 20px; font-size: 1.2rem; border-radius: 8px;}
 
 footer { text-align: center; margin-top: 30px; }
-/* 1. Ép nội dung đẩy từ trên xuống và dàn đều khoảng cách */
-.fc-front, .fc-back {
-    justify-content: flex-start !important;
-}
+/* ===== FIX GOALS LAYOUT ===== */
 
-/* 2. Ép khung bao quanh ảnh tự động co bóp vừa với phần trống còn lại */
-.fc-front .img-wrapper, .fc-back .img-wrapper {
-    flex: 1;
-    min-height: 0; 
-    width: 100%;
+.controls {
     display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.controls-top {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.controls-bottom {
+    display: flex;
+    gap: 10px;
     align-items: center;
-    justify-content: center;
-    margin-top: 10px;
 }
 
-/* 3. Ép bức ảnh giới hạn tuyệt đối 100% không được tràn khung */
-.fc-img {
-    max-height: 100% !important;
-    max-width: 100%;
-    object-fit: contain;
+#goal-input {
+    flex: 1;
 }
 
-/* 4. Giữ cho khu vực chứa nút bấm luôn cố định ở đáy, không bị bóp méo */
-.fc-actions {
-    flex-shrink: 0;
-    margin-top: auto !important; /* Đẩy nút xuống sát đáy thẻ */
-    padding-top: 10px;
+/* GRID đẹp hơn */
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+}
+
+/* CARD rõ layout */
+.card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* header card */
+.card > div:first-child {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* recall rõ ràng hơn */
+#recall-notice {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+#recall-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
 }

@@ -189,3 +189,76 @@ function pomoTick() { timeRemaining--; if(timeRemaining < 0) { if(pomoState === 
 function updatePomoDisplay(seconds, type) { const m = Math.floor(seconds / 60).toString().padStart(2, '0'); const s = (seconds % 60).toString().padStart(2, '0'); document.getElementById(`time-${type}`).innerText = `${m}:${s}`; if(totalTime > 0 && timeRemaining <= totalTime) { const circle = document.getElementById(`ring-${type}`); const offset = CIRCUMFERENCE - (seconds / totalTime) * CIRCUMFERENCE; circle.style.strokeDashoffset = offset; } }
 
 document.getElementById('clear-btn').addEventListener('click', () => { if(confirm('CẢNH BÁO: Bạn có chắc chắn muốn xóa toàn bộ dữ liệu?')) { localStorage.removeItem('myDashboardData'); location.reload(); } });
+/* --- GIỮ NGUYÊN TOÀN BỘ CODE CŨ, BỔ SUNG CÁC LOGIC SAU --- */
+
+// Cập nhật appData để lưu thêm chiều rộng
+if (!appData.moduleWidths) appData.moduleWidths = {};
+
+// Trong DOMContentLoaded, thêm gọi hàm initResizing()
+document.addEventListener('DOMContentLoaded', () => {
+    // ... các lệnh gọi cũ ...
+    initResizing(); 
+    applySavedWidths();
+});
+
+// Hàm áp dụng chiều rộng đã lưu
+function applySavedWidths() {
+    Object.keys(appData.moduleWidths).forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.style.flex = `0 0 ${appData.moduleWidths[id]}`;
+        }
+    });
+}
+
+function initResizing() {
+    const handles = document.querySelectorAll('.resize-handle');
+    let currentModule = null;
+    let startX, startWidth;
+
+    handles.forEach(handle => {
+        handle.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            currentModule = handle.parentElement;
+            startX = e.clientX;
+            startWidth = currentModule.offsetWidth;
+
+            currentModule.setAttribute('draggable', 'false'); // Tạm dừng drag & drop
+            currentModule.classList.add('resizing');
+
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+        });
+    });
+
+    function handleMouseMove(e) {
+        if (!currentModule) return;
+        
+        // Tính toán chiều rộng mới
+        const delta = e.clientX - startX;
+        const newWidth = startWidth + delta;
+        const containerWidth = document.getElementById('drag-container').offsetWidth;
+        
+        // Chuyển sang đơn vị % để co giãn tốt hơn trên các màn hình
+        const widthPercent = (newWidth / containerWidth) * 100;
+        
+        // Giới hạn không cho kéo quá nhỏ hoặc quá to
+        const finalWidth = Math.min(Math.max(widthPercent, 20), 100);
+        
+        currentModule.style.flex = `0 0 ${finalWidth}%`;
+    }
+
+    function handleMouseUp() {
+        if (currentModule) {
+            // Lưu chiều rộng vào data
+            appData.moduleWidths[currentModule.id] = currentModule.style.flex.split('0 0 ')[1];
+            saveData();
+
+            currentModule.setAttribute('draggable', 'true'); // Kích hoạt lại drag & drop
+            currentModule.classList.remove('resizing');
+            currentModule = null;
+        }
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+    }
+}

@@ -44,11 +44,7 @@ button:hover { filter: brightness(1.2); transform: scale(1.02); }
 .img-upload-btn { background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); display: inline-flex; align-items: center; justify-content: center; }
 
 /* GOALS & RECALL */
-.controls {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 15px; flex-wrap: wrap; }
+.controls { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }
 .input-group { display: flex; flex-direction: column; text-align: left; gap: 4px; font-size: 0.8rem; }
 .grid-container { display: grid; gap: 10px; align-content: start; }
 .card { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border-left: 4px solid #555; }
@@ -74,34 +70,6 @@ button:hover { filter: brightness(1.2); transform: scale(1.02); }
 .fc-back { background: var(--primary-color); color: #000; transform: rotateY(180deg); }
 .fc-delete-btn { position: absolute; top: 8px; right: 8px; background: rgba(255,107,107,0.2); color: #ff6b6b; border: 1px solid transparent; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 15; font-size: 1rem; transition: 0.2s;}
 .fc-delete-btn:hover { background: #ff6b6b; color: white; }
-.fc-front, .fc-back {
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-}
-
-.fc-front .img-wrapper, 
-.fc-back .img-wrapper {
-    flex: 1;
-    min-height: 0;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: 10px;
-}
-
-.fc-img {
-    max-height: 100%;
-    max-width: 100%;
-    object-fit: contain;
-}
-
-.fc-actions {
-    flex-shrink: 0;
-    margin-top: auto;
-    padding-top: 10px;
-}
 
 /* WHEEL */
 .wheel-split-layout { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; align-items: center; }
@@ -143,3 +111,32 @@ th { background: rgba(0,0,0,0.3); color: var(--primary-color); white-space: nowr
 .iv-controls button { padding: 12px 20px; font-size: 1.2rem; border-radius: 8px;}
 
 footer { text-align: center; margin-top: 30px; }
+/* 1. Ép nội dung đẩy từ trên xuống và dàn đều khoảng cách */
+.fc-front, .fc-back {
+    justify-content: flex-start !important;
+}
+
+/* 2. Ép khung bao quanh ảnh tự động co bóp vừa với phần trống còn lại */
+.fc-front .img-wrapper, .fc-back .img-wrapper {
+    flex: 1;
+    min-height: 0; 
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+/* 3. Ép bức ảnh giới hạn tuyệt đối 100% không được tràn khung */
+.fc-img {
+    max-height: 100% !important;
+    max-width: 100%;
+    object-fit: contain;
+}
+
+/* 4. Giữ cho khu vực chứa nút bấm luôn cố định ở đáy, không bị bóp méo */
+.fc-actions {
+    flex-shrink: 0;
+    margin-top: auto !important; /* Đẩy nút xuống sát đáy thẻ */
+    padding-top: 10px;
+}

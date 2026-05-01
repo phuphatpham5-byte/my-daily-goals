@@ -174,7 +174,7 @@ function renderGoals() {
     gs.forEach(g => {
         const d = document.createElement('div'); d.className = `card ${g.completed ? 'completed' : ''}`;
         const img = g.img ? `<div class="img-wrapper"><img src="${g.img}" class="card-img"><button class="view-img-btn" onclick="openImageModal('${g.img}', event)">🔍 Xem</button></div>` : '';
-        d.innerHTML = `<div style="display:flex; justify-content:space-between"><h4>${g.title}</h4><input type="checkbox" ${g.completed?'checked':''} onchange="toggleGoal('${g.id}', this.checked)"></div>${img}${g.completed ? `<select class="recall-select" onchange="setRecall('${g.id}','${g.title}',this.value);this.value=''"><option value="">+ Ôn tập</option><option value="1">1 ngày</option><option value="3">3 ngày</option><option value="7">7 ngày</option></select>` : ''}`;
+        d.innerHTML = `<div style="display:flex; justify-content:space-between"><h4>${g.title}</h4><label class="notion-checkbox"><input type="checkbox" ${g.completed?'checked':''} onchange="toggleGoal('${g.id}', this.checked)"><span>✓</span></label></div>${img}${g.completed ? `<select class="recall-select" onchange="setRecall('${g.id}','${g.title}',this.value);this.value=''"><option value="">+ Ôn tập</option><option value="1">1 ngày</option><option value="3">3 ngày</option><option value="7">7 ngày</option></select>` : ''}`;
         c.appendChild(d);
     });
 }

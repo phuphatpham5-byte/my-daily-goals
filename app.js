@@ -255,6 +255,7 @@ function applyWheelColors() {
     appData.wheelTheme.useCustom = true;
     appData.wheelTheme.color1 = document.getElementById('w-color-1').value;
     appData.wheelTheme.color2 = document.getElementById('w-color-2').value;
+    appData.wheelTheme.color2 = document.getElementById('w-color-3').value;
     appData.wheelTheme.textColor = document.getElementById('w-color-text').value;
     saveData(); drawWheel();
 }

@@ -44,7 +44,11 @@ button:hover { filter: brightness(1.2); transform: scale(1.02); }
 .img-upload-btn { background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); display: inline-flex; align-items: center; justify-content: center; }
 
 /* GOALS & RECALL */
-.controls { display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; }
+.controls {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 15px; flex-wrap: wrap; }
 .input-group { display: flex; flex-direction: column; text-align: left; gap: 4px; font-size: 0.8rem; }
 .grid-container { display: grid; gap: 10px; align-content: start; }
 .card { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border-left: 4px solid #555; }

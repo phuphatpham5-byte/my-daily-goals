@@ -163,3 +163,41 @@ footer { text-align: center; margin-top: 30px; }
     border: 3px solid #ff9800 !important;
     box-shadow: 0 0 25px rgba(255, 152, 0, 0.8) !important;
 }
+/* =========================================================================
+   BẢN VÁ LỖI HIỂN THỊ ACTIVE RECALL GỌN GÀNG
+========================================================================= */
+#recall-list {
+    list-style: none; /* Xóa dấu chấm bi lộn xộn */
+    padding: 0;
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#recall-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(0,0,0,0.3);
+    padding: 10px 15px;
+    border-radius: 8px;
+    border-left: 4px solid #ffc107;
+    gap: 15px;
+}
+
+.recall-item-content {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex: 1;
+    flex-wrap: wrap; /* Tự động xuống dòng nếu ảnh/text quá to */
+}
+
+.recall-done-btn {
+    background: var(--primary-color);
+    color: #000;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    flex-shrink: 0; /* Ép nút Xong không bị bóp méo */
+}

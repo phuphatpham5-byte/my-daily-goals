@@ -49,6 +49,7 @@ button:hover { filter: brightness(1.2); transform: scale(1.02); }
 .grid-container { display: grid; gap: 10px; align-content: start; }
 .card { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border-left: 4px solid #555; }
 .card.completed { border-left-color: #4CAF50; opacity: 0.8; }
+#recall-notice { background: rgba(255, 193, 7, 0.2); border: 1px solid #ffc107; padding: 10px; border-radius: 8px; margin-bottom: 15px; }
 .hidden { display: none !important; }
 
 /* IMAGES IN CARDS */

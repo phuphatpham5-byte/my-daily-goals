@@ -174,10 +174,17 @@ function addGoal() {
 
 function renderGoals() {
     const c = document.getElementById('goal-container'); const gs = appData.goals[currentDate] || []; c.innerHTML = gs.length ? '' : '<p>Chưa có mục tiêu.</p>';
+    
+    // TÍNH NĂNG MỚI: Vòng lặp tự động tạo các mốc ngày lẻ từ 1 đến 29
+    let optionsHtml = '<option value="">+ Ôn tập</option>';
+    for(let i = 1; i <= 29; i += 2) { 
+        optionsHtml += `<option value="${i}">${i} ngày</option>`; 
+    }
+
     gs.forEach(g => {
         const d = document.createElement('div'); d.className = `card ${g.completed ? 'completed' : ''}`;
         const img = g.img ? `<div class="img-wrapper"><img src="${g.img}" class="card-img"><button class="view-img-btn" onclick="openImageModal('${g.img}', event)">🔍 Xem</button></div>` : '';
-        d.innerHTML = `<div style="display:flex; justify-content:space-between"><h4>${g.title}</h4><label class="notion-checkbox"><input type="checkbox" ${g.completed?'checked':''} onchange="toggleGoal('${g.id}', this.checked)"><span>✓</span></label></div>${img}${g.completed ? `<select class="recall-select" onchange="setRecall('${g.id}','${g.title}',this.value);this.value=''"><option value="">+ Ôn tập</option><option value="1">1 ngày</option><option value="3">3 ngày</option><option value="7">7 ngày</option></select>` : ''}`;
+        d.innerHTML = `<div style="display:flex; justify-content:space-between"><h4>${g.title}</h4><label class="notion-checkbox"><input type="checkbox" ${g.completed?'checked':''} onchange="toggleGoal('${g.id}', this.checked)"><span>✓</span></label></div>${img}${g.completed ? `<select class="recall-select" onchange="setRecall('${g.id}','${g.title}',this.value);this.value=''">${optionsHtml}</select>` : ''}`;
         c.appendChild(d);
     });
 }
@@ -267,7 +274,16 @@ function checkActiveRecall() {
     const box = document.getElementById('recall-notice'); const list = document.getElementById('recall-list');
     if(due.length) { 
         box.classList.remove('hidden'); 
-        list.innerHTML = due.map(r => `<li>${r.title} ${r.img ? `<div class="img-wrapper"><img src="${r.img}" class="recall-img"><button class="view-img-btn" onclick="openImageModal('${r.img}', event)">🔍</button></div>`:''} <button onclick="remRecall('${r.id}')" style="float:right; padding: 2px 5px; font-size: 0.7rem;">Xong</button><div style="clear:both;"></div></li>`).join(''); 
+        // ĐÃ SỬA LỖI: Sắp xếp lại HTML bên trong thẻ li để Flexbox hoạt động
+        list.innerHTML = due.map(r => `
+            <li>
+                <div class="recall-item-content">
+                    <span>${r.title}</span> 
+                    ${r.img ? `<div class="img-wrapper"><img src="${r.img}" class="recall-img"><button class="view-img-btn" onclick="openImageModal('${r.img}', event)">🔍</button></div>`:''}
+                </div>
+                <button onclick="remRecall('${r.id}')" class="recall-done-btn">Xong</button>
+            </li>
+        `).join(''); 
     }
     else box.classList.add('hidden');
 }

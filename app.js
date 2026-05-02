@@ -1,4 +1,4 @@
-// --- 1. KHỞI TẠO DỮ LIỆU ---
+// --- 1. KHỞI TẠO DỮ LIỆU BẢO TOÀN ---
 let appData = JSON.parse(localStorage.getItem('myDashboardData')) || {
     goals: {}, recall: [], 
     sheetData: [["Môn học", "Hệ số", "Điểm"], ["Toán", "2", "8.5"]],
@@ -6,12 +6,13 @@ let appData = JSON.parse(localStorage.getItem('myDashboardData')) || {
     theme: { bg: '#1a1a1a', primary: '#00d4ff', text: '#ffffff' },
     wheelTheme: { useCustom: false, color1: '#ff4d4d', color2: '#4da6ff', textColor: '#ffffff' },
     layout: ['module-goals', 'module-habits', 'module-sheets', 'module-wheel', 'module-flashcards', 'module-pomodoro'],
-    flashcards: [], habits: [], moduleWidths: {}, moduleHeights: {}
+    flashcards: [], habits: [], moduleWidths: {}, moduleHeights: {}, fcGroups: []
 };
 
 // Vá cấu trúc dữ liệu nếu là user từ bản cũ
 if (!appData.flashcards) appData.flashcards = [];
 if (!appData.habits) appData.habits = [];
+if (!appData.fcGroups) appData.fcGroups = []; // Nhóm flashcards
 if (!appData.moduleWidths) appData.moduleWidths = {};
 if (!appData.moduleHeights) appData.moduleHeights = {};
 if (!appData.wheelTheme) appData.wheelTheme = { useCustom: false, color1: '#ff4d4d', color2: '#4da6ff', textColor: '#ffffff' };
@@ -38,33 +39,30 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('add-btn').addEventListener('click', addGoal);
     document.getElementById('wheel-items').value = appData.wheelItems.join('\n');
     
-    // Load màu vòng quay
     document.getElementById('w-color-1').value = appData.wheelTheme.color1;
     document.getElementById('w-color-2').value = appData.wheelTheme.color2;
     document.getElementById('w-color-text').value = appData.wheelTheme.textColor;
     
+    renderFCGroupSelect(); // Khởi tạo danh sách nhóm
     renderGoals(); checkActiveRecall(); renderSheet(); drawWheel(); renderFC(); initPomo(); renderHabits();
     
-    // Event listeners
     document.getElementById('color-bg').addEventListener('input', updateTheme);
     document.getElementById('color-primary').addEventListener('input', updateTheme);
     document.getElementById('color-text').addEventListener('input', updateTheme);
     
-    // Lắng nghe sự kiện thêm thẻ & random thẻ
     document.getElementById('add-fc-btn').addEventListener('click', addFC);
+    document.getElementById('create-fc-group-btn').addEventListener('click', createFCGroup);
     document.getElementById('random-fc-btn').addEventListener('click', pickRandomFC);
     
     document.getElementById('w-color-1').addEventListener('input', applyWheelColors);
     document.getElementById('w-color-2').addEventListener('input', applyWheelColors);
     document.getElementById('w-color-text').addEventListener('input', applyWheelColors);
 
-    // Xử lý nén ảnh (2000px, 95% quality)
     setupImageUpload('goal-image-input', 'goal-img-label', res => tempGoalImg = res);
     setupImageUpload('fc-q-img', 'fc-q-img-label', res => tempFCQImg = res);
     setupImageUpload('fc-a-img', 'fc-a-img-label', res => tempFCAImg = res);
 });
 
-// Nén ảnh chất lượng cao
 function setupImageUpload(inputId, labelId, callback) {
     document.getElementById(inputId).addEventListener('change', (e) => {
         const file = e.target.files[0];
@@ -74,15 +72,15 @@ function setupImageUpload(inputId, labelId, callback) {
             const img = new Image();
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                const MAX = 2000; // Độ phân giải rất cao
+                const MAX = 2000; 
                 let w = img.width, h = img.height;
                 if (w > h) { if (w > MAX) { h *= MAX/w; w = MAX; } } else { if (h > MAX) { w *= MAX/h; h = MAX; } }
                 canvas.width = w; canvas.height = h;
                 const ctx = canvas.getContext('2d');
-                ctx.fillStyle = "#ffffff"; // Nền trắng cho PNG
+                ctx.fillStyle = "#ffffff"; 
                 ctx.fillRect(0, 0, w, h);
                 ctx.drawImage(img, 0, 0, w, h);
-                callback(canvas.toDataURL('image/jpeg', 0.95)); // Chất lượng 95%
+                callback(canvas.toDataURL('image/jpeg', 0.95)); 
                 document.getElementById(labelId).style.background = 'var(--primary-color)';
             };
             img.src = event.target.result;
@@ -94,7 +92,7 @@ function setupImageUpload(inputId, labelId, callback) {
 // --- 4. ZOOM ẢNH TOÀN MÀN HÌNH ---
 let currentZoom = 1;
 function openImageModal(src, e) {
-    if(e) e.stopPropagation(); // Khóa lật thẻ Flashcard
+    if(e) e.stopPropagation(); 
     document.getElementById('iv-image').src = src;
     document.getElementById('image-viewer-modal').style.display = 'flex';
     currentZoom = 1; applyZoom();
@@ -113,7 +111,7 @@ function initResizing() {
     const start = (e, m) => { 
         e.preventDefault(); mode = m; currentModule = e.target.parentElement; 
         startX = e.clientX; startY = e.clientY; startW = currentModule.offsetWidth; startH = currentModule.offsetHeight; 
-        currentModule.setAttribute('draggable', 'false'); // Khóa Drag
+        currentModule.setAttribute('draggable', 'false'); 
         currentModule.classList.add('resizing'); 
         document.addEventListener('mousemove', move); document.addEventListener('mouseup', stop); 
     };
@@ -130,7 +128,7 @@ function initResizing() {
             appData.moduleWidths[currentModule.id] = currentModule.style.flex.split('0 0 ')[1]; 
             appData.moduleHeights[currentModule.id] = currentModule.style.minHeight; 
             saveData(); 
-            currentModule.setAttribute('draggable', 'true'); // Mở lại Drag
+            currentModule.setAttribute('draggable', 'true'); 
             currentModule.classList.remove('resizing'); 
             currentModule = null; 
         } 
@@ -174,12 +172,8 @@ function addGoal() {
 
 function renderGoals() {
     const c = document.getElementById('goal-container'); const gs = appData.goals[currentDate] || []; c.innerHTML = gs.length ? '' : '<p>Chưa có mục tiêu.</p>';
-    
-    // TÍNH NĂNG MỚI: Vòng lặp tự động tạo các mốc ngày lẻ từ 1 đến 29
     let optionsHtml = '<option value="">+ Ôn tập</option>';
-    for(let i = 1; i <= 29; i += 2) { 
-        optionsHtml += `<option value="${i}">${i} ngày</option>`; 
-    }
+    for(let i = 1; i <= 29; i += 2) { optionsHtml += `<option value="${i}">${i} ngày</option>`; }
 
     gs.forEach(g => {
         const d = document.createElement('div'); d.className = `card ${g.completed ? 'completed' : ''}`;
@@ -208,58 +202,162 @@ function renderHabits() {
 function toggleHabit(id, d, ok) { const h = appData.habits.find(x => x.id === id); if(h) h.progressMap[d] = ok; saveData(); renderHabits(); }
 function delHabit(id) { if(confirm("Xóa habit này?")) { appData.habits = appData.habits.filter(x => x.id !== id); saveData(); renderHabits(); } }
 
-// --- 7. FLASHCARDS ---
+// --- 7. TÍNH NĂNG TẠO NHÓM VÀ QUẢN LÝ FLASHCARDS ---
+function createFCGroup() {
+    const name = prompt("Nhập tên nhóm thẻ mới:");
+    if(!name || !name.trim()) return;
+    appData.fcGroups.push({ id: 'fcg_' + Date.now(), name: name.trim() });
+    saveData();
+    renderFCGroupSelect();
+    renderFC();
+}
+
+function renderFCGroupSelect() {
+    const sel = document.getElementById('fc-group-select');
+    const currentVal = sel.value;
+    let htm = '<option value="none">Chưa phân nhóm</option>';
+    appData.fcGroups.forEach(g => { htm += `<option value="${g.id}">${g.name}</option>`; });
+    sel.innerHTML = htm;
+    if(appData.fcGroups.find(g => g.id === currentVal)) sel.value = currentVal; else sel.value = "none";
+}
+
 function addFC() {
     const q = document.getElementById('fc-q').value.trim(), a = document.getElementById('fc-a').value.trim();
     if(!q && !tempFCQImg && !a && !tempFCAImg) return alert("Vui lòng nhập liệu hoặc chọn ảnh!");
-    appData.flashcards.push({ id: 'fc_'+Date.now(), q, a, qImg: tempFCQImg, aImg: tempFCAImg });
+    
+    // Lấy nhóm từ Select
+    const groupId = document.getElementById('fc-group-select').value;
+    appData.flashcards.push({ id: 'fc_'+Date.now(), q, a, qImg: tempFCQImg, aImg: tempFCAImg, groupId: groupId });
+    
     document.getElementById('fc-q').value = ''; document.getElementById('fc-a').value = ''; tempFCQImg = null; tempFCAImg = null;
     document.getElementById('fc-q-img').value=''; document.getElementById('fc-a-img').value='';
     document.getElementById('fc-q-img-label').style.background = document.getElementById('fc-a-img-label').style.background = 'rgba(255,255,255,0.1)';
     saveData(); renderFC();
 }
 
-function renderFC() {
-    const c = document.getElementById('fc-container'); document.getElementById('fc-count').innerText = appData.flashcards.length; c.innerHTML = '';
-    appData.flashcards.forEach(fc => {
-        const d = document.createElement('div'); d.className = 'flashcard';
-        const delBtn = `<button class="fc-delete-btn" onclick="removeFC('${fc.id}', event)" title="Xóa thẻ">🗑</button>`;
-        const qImg = fc.qImg ? `<div class="img-wrapper"><img src="${fc.qImg}" class="fc-img"><button class="view-img-btn" onclick="openImageModal('${fc.qImg}', event)">🔍</button></div>` : '';
-        const aImg = fc.aImg ? `<div class="img-wrapper"><img src="${fc.aImg}" class="fc-img"><button class="view-img-btn" onclick="openImageModal('${fc.aImg}', event)">🔍</button></div>` : '';
-        d.onclick = (e) => { if(e.target.tagName !== 'BUTTON') d.classList.toggle('flipped'); };
-        d.innerHTML = `<div class="fc-inner">
-            <div class="fc-front">${delBtn}<strong>Q:</strong> ${fc.q} ${qImg}</div>
-            <div class="fc-back"><strong>A:</strong> ${fc.a} ${aImg}
+// Cấu trúc lại việc vẽ thẻ (tái sử dụng code)
+function createFCCardElement(fc, index, isModal) {
+    const d = document.createElement('div'); d.className = 'flashcard';
+    const delBtn = `<button class="fc-delete-btn" onclick="removeFC('${fc.id}', event, ${isModal})" title="Xóa thẻ">🗑</button>`;
+    const numBadge = `<div class="fc-number">${index}</div>`;
+    const qImg = fc.qImg ? `<div class="img-wrapper"><img src="${fc.qImg}" class="fc-img"><button class="view-img-btn" onclick="openImageModal('${fc.qImg}', event)">🔍</button></div>` : '';
+    const aImg = fc.aImg ? `<div class="img-wrapper"><img src="${fc.aImg}" class="fc-img"><button class="view-img-btn" onclick="openImageModal('${fc.aImg}', event)">🔍</button></div>` : '';
+    
+    d.onclick = (e) => { if(e.target.tagName !== 'BUTTON') d.classList.toggle('flipped'); };
+    d.innerHTML = `
+        <div class="fc-inner">
+            <div class="fc-front">${numBadge}${delBtn}<strong>Q:</strong> ${fc.q} ${qImg}</div>
+            <div class="fc-back">${numBadge}<strong>A:</strong> ${fc.a} ${aImg}
                 <div class="fc-actions" style="margin-top:15px">
-                    <button onclick="removeFC('${fc.id}', event)" style="background:var(--coral-red)">Đã hiểu</button>
+                    <button onclick="removeFC('${fc.id}', event, ${isModal})" style="background:var(--coral-red)">Đã hiểu</button>
                     <button onclick="keepFC(event)" style="background:#4CAF50">Nhớ nhớ</button>
                 </div>
             </div>
         </div>`;
+    return d;
+}
+
+function renderFC() {
+    const c = document.getElementById('fc-container'); 
+    document.getElementById('fc-count').innerText = appData.flashcards.length; 
+    c.innerHTML = '';
+    
+    // Vẽ Album Nhóm trước
+    appData.fcGroups.forEach(group => {
+        const groupCards = appData.flashcards.filter(f => f.groupId === group.id);
+        const gDiv = document.createElement('div');
+        gDiv.className = 'fc-group-stack';
+        gDiv.onclick = (e) => { if(e.target.tagName !== 'BUTTON') openFCGroupModal(group.id); };
+        gDiv.innerHTML = `
+            <button class="fc-group-del-btn" onclick="removeFCGroup('${group.id}', event)" title="Xóa nhóm">🗑</button>
+            <div class="fc-group-title">📁 ${group.name}</div>
+            <div class="fc-group-count">${groupCards.length} thẻ</div>
+        `;
+        c.appendChild(gDiv);
+    });
+
+    // Vẽ các thẻ lẻ không thuộc nhóm
+    let standaloneIdx = 1;
+    appData.flashcards.forEach(fc => {
+        if(fc.groupId && fc.groupId !== 'none') return;
+        const d = createFCCardElement(fc, standaloneIdx++, false);
         c.appendChild(d);
     });
 }
-function removeFC(id, e) { e.stopPropagation(); if(confirm("Xóa flashcard này?")) { appData.flashcards = appData.flashcards.filter(x => x.id !== id); saveData(); renderFC(); } }
+
+function removeFC(id, e, isModal = false) { 
+    e.stopPropagation(); 
+    if(confirm("Xóa flashcard này?")) { 
+        appData.flashcards = appData.flashcards.filter(x => x.id !== id); 
+        saveData(); 
+        if(isModal) renderFCInModal(); 
+        renderFC(); 
+    } 
+}
 function keepFC(e) { e.stopPropagation(); e.target.closest('.flashcard').classList.remove('flipped'); }
 
-// --- TÍNH NĂNG MỚI: CHỌN THẺ NGẪU NHIÊN ---
-function pickRandomFC() {
-    if (!appData.flashcards || appData.flashcards.length === 0) return alert("Chưa có Flashcard nào để chọn!");
-    const cards = document.querySelectorAll('.flashcard');
-    if (cards.length === 0) return;
+function removeFCGroup(id, e) {
+    e.stopPropagation();
+    if(confirm("Xóa toàn bộ nhóm này và MỌI THẺ bên trong?")) {
+        appData.flashcards = appData.flashcards.filter(f => f.groupId !== id);
+        appData.fcGroups = appData.fcGroups.filter(g => g.id !== id);
+        saveData(); renderFCGroupSelect(); renderFC();
+    }
+}
+
+// Logic cho Group Modal
+let currentOpenGroupId = null;
+function openFCGroupModal(groupId) {
+    currentOpenGroupId = groupId;
+    const group = appData.fcGroups.find(g => g.id === groupId);
+    if(!group) return;
+    document.getElementById('fc-group-modal-title').innerText = `📁 Nhóm: ${group.name}`;
+    document.getElementById('fc-group-modal').style.display = 'flex';
+    renderFCInModal();
+}
+
+function closeFCGroupModal() {
+    document.getElementById('fc-group-modal').style.display = 'none';
+    currentOpenGroupId = null;
+    renderFC();
+}
+
+function renderFCInModal() {
+    const container = document.getElementById('fc-group-modal-container');
+    container.innerHTML = '';
+    let localIdx = 1;
+    const groupCards = appData.flashcards.filter(f => f.groupId === currentOpenGroupId);
+    document.getElementById('fc-group-modal-count').innerText = groupCards.length;
     
-    // Xóa class highlight cũ
+    if(groupCards.length === 0) {
+        container.innerHTML = '<p style="color:#aaa; text-align:center; grid-column: 1/-1;">Nhóm này chưa có thẻ nào.</p>';
+        return;
+    }
+    
+    groupCards.forEach(fc => {
+        const d = createFCCardElement(fc, localIdx++, true);
+        container.appendChild(d);
+    });
+}
+
+// CHỌN THẺ RANDOM (CHUNG VÀ TRONG NHÓM)
+function triggerRandomEffect(cards) {
+    if (cards.length === 0) return alert("Chưa có thẻ nào để ngẫu nhiên!");
     cards.forEach(c => c.classList.remove('highlight-random'));
-    
-    // Chọn ngẫu nhiên 1 thẻ
     const randomIndex = Math.floor(Math.random() * cards.length);
     const selectedCard = cards[randomIndex];
-    
-    // Tự động cuộn tới vị trí của thẻ đó
     selectedCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    
-    // Delay nhẹ một chút để chờ scroll xong rồi mới phát sáng thẻ
     setTimeout(() => selectedCard.classList.add('highlight-random'), 300);
+}
+function pickRandomFC() {
+    const container = document.getElementById('fc-container');
+    const cards = container.querySelectorAll('.flashcard'); // Chỉ lấy thẻ lẻ, bỏ qua Group
+    triggerRandomEffect(cards);
+}
+function pickRandomFCInGroup() {
+    const container = document.getElementById('fc-group-modal-container');
+    const cards = container.querySelectorAll('.flashcard');
+    triggerRandomEffect(cards);
 }
 
 // --- 8. ACTIVE RECALL ---
@@ -274,7 +372,6 @@ function checkActiveRecall() {
     const box = document.getElementById('recall-notice'); const list = document.getElementById('recall-list');
     if(due.length) { 
         box.classList.remove('hidden'); 
-        // ĐÃ SỬA LỖI: Sắp xếp lại HTML bên trong thẻ li để Flexbox hoạt động
         list.innerHTML = due.map(r => `
             <li>
                 <div class="recall-item-content">
@@ -284,24 +381,13 @@ function checkActiveRecall() {
                 <button onclick="remRecall('${r.id}')" class="recall-done-btn">Xong</button>
             </li>
         `).join(''); 
-    }
-    else box.classList.add('hidden');
+    } else box.classList.add('hidden');
 }
 function remRecall(id) { appData.recall = appData.recall.filter(x => x.id !== id); saveData(); checkActiveRecall(); }
 
 // --- 9. WHEEL TÙY CHỈNH MÀU ---
-function applyWheelColors() {
-    appData.wheelTheme.useCustom = true;
-    appData.wheelTheme.color1 = document.getElementById('w-color-1').value;
-    appData.wheelTheme.color2 = document.getElementById('w-color-2').value;
-    appData.wheelTheme.textColor = document.getElementById('w-color-text').value;
-    saveData(); drawWheel();
-}
-function resetWheelColors() {
-    appData.wheelTheme.useCustom = false;
-    document.getElementById('w-color-1').value = '#ff4d4d'; document.getElementById('w-color-2').value = '#4da6ff'; document.getElementById('w-color-text').value = '#ffffff';
-    appData.wheelTheme.textColor = '#000000'; saveData(); drawWheel();
-}
+function applyWheelColors() { appData.wheelTheme.useCustom = true; appData.wheelTheme.color1 = document.getElementById('w-color-1').value; appData.wheelTheme.color2 = document.getElementById('w-color-2').value; appData.wheelTheme.textColor = document.getElementById('w-color-text').value; saveData(); drawWheel(); }
+function resetWheelColors() { appData.wheelTheme.useCustom = false; document.getElementById('w-color-1').value = '#ff4d4d'; document.getElementById('w-color-2').value = '#4da6ff'; document.getElementById('w-color-text').value = '#ffffff'; appData.wheelTheme.textColor = '#000000'; saveData(); drawWheel(); }
 function updateWheel() { appData.wheelItems = document.getElementById('wheel-items').value.split('\n').filter(x=>x.trim()); saveData(); drawWheel(); }
 
 let curDeg = 0;
@@ -317,11 +403,8 @@ function drawWheel() {
         let rot = mid-90; wr.style.transform=`rotate(${rot}deg)`; 
         let span = document.createElement('span'); span.className='wheel-text'; span.innerText = appData.wheelItems[i];
         span.style.color = appData.wheelTheme.useCustom ? appData.wheelTheme.textColor : '#000000';
-        
-        // Lật chữ cho nửa vòng trái
         let actualRot = rot % 360; if(actualRot < 0) actualRot += 360;
         if(actualRot > 90 && actualRot < 270) { span.style.display = 'inline-block'; span.style.transform = 'rotate(180deg)'; wr.style.justifyContent = 'flex-start'; wr.style.paddingLeft = '20px'; wr.style.paddingRight = '0'; }
-        
         wr.appendChild(span); w.appendChild(wr); 
     } 
     w.style.background = `conic-gradient(${gr.join(',')})`; 
@@ -352,11 +435,7 @@ function renderPomo() {
     let tStr = `${m}:${s<10?'0':''}${s}`;
     if (pState === 'work' || pState === 'idle') { document.getElementById('time-work').innerText = tStr; document.getElementById('time-rest').innerText = document.getElementById('pomo-rest-sel').value+":00"; }
     else { document.getElementById('time-rest').innerText = tStr; document.getElementById('time-work').innerText = document.getElementById('pomo-work-sel').value+":00"; }
-    
-    if (pState !== 'idle') {
-        const off = CIRC - (pRem/currentTotal)*CIRC; 
-        document.getElementById(`ring-${pState}`).style.strokeDashoffset = off; 
-    }
+    if (pState !== 'idle') { const off = CIRC - (pRem/currentTotal)*CIRC; document.getElementById(`ring-${pState}`).style.strokeDashoffset = off; }
 }
 
 document.getElementById('clear-btn').onclick = () => { if(confirm("CẢNH BÁO: Xóa toàn bộ dữ liệu?")) { localStorage.removeItem('myDashboardData'); location.reload(); } };

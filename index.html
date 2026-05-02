@@ -26,7 +26,7 @@
     <div id="drag-container">
         
         <section class="draggable-module" draggable="true" id="module-goals">
-            <div class="drag-handle">☰ Mục Tiêu</div>
+            <div class="drag-handle">☰ Mục Tiêu & Active Recall</div>
             <div class="controls" style="align-items: flex-end;">
                 <div class="input-group">
                     <label>Từ ngày (Mặc định):</label>
@@ -48,9 +48,7 @@
                 <ul id="recall-list"></ul>
             </div>
             <main id="goal-container" class="grid-container flex-grow-area"></main>
-            <div class="resize-handle"></div>
-            <div class="resize-handle-y"></div>
-            <div class="resize-handle-corner"></div>
+            <div class="resize-handle"></div><div class="resize-handle-y"></div><div class="resize-handle-corner"></div>
         </section>
 
         <section class="draggable-module" draggable="true" id="module-habits">
@@ -105,7 +103,10 @@
 
         <section class="draggable-module" draggable="true" id="module-flashcards">
             <div class="drag-handle">☰ Flashcards & Ôn Tập</div>
-            <div class="controls" style="flex-wrap: wrap;">
+            <div class="controls" style="flex-wrap: wrap; align-items: center;">
+                <select id="fc-group-select" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 10px; color: var(--text-color);">
+                    <option value="none">Chưa phân nhóm</option>
+                </select>
                 <div class="fc-input-wrap">
                     <label id="fc-q-img-label" for="fc-q-img" class="img-upload-btn" title="Thêm ảnh câu hỏi">🖼️</label>
                     <input type="file" id="fc-q-img" accept="image/*" style="display: none;">
@@ -117,9 +118,10 @@
                     <input type="text" id="fc-a" placeholder="Đáp án...">
                 </div>
                 <button id="add-fc-btn">Tạo Thẻ</button>
+                <button id="create-fc-group-btn" style="background: #4caf50; color: #fff; margin-left: 5px;">📁 Tạo Nhóm</button>
                 <button id="random-fc-btn" style="background: #ff9800; color: #000; margin-left: 5px;">🎲 Ngẫu Nhiên</button>
             </div>
-            <p style="text-align:center; margin-bottom: 10px;">Tổng số: <strong id="fc-count" style="color:var(--primary-color)">0</strong></p>
+            <p style="text-align:center; margin-bottom: 10px;">Tổng thẻ (Tất cả): <strong id="fc-count" style="color:var(--primary-color)">0</strong></p>
             <div id="fc-container" class="fc-grid flex-grow-area"></div>
             <div class="resize-handle"></div><div class="resize-handle-y"></div><div class="resize-handle-corner"></div>
         </section>
@@ -160,6 +162,22 @@
             <div class="resize-handle"></div><div class="resize-handle-y"></div><div class="resize-handle-corner"></div>
         </section>
 
+    </div>
+
+    <div id="fc-group-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 99998; padding: 40px; box-sizing: border-box; align-items: center; justify-content: center;">
+        <div style="background: var(--bg-color); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; width: 100%; height: 100%; max-width: 1400px; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box; box-shadow: 0 10px 40px rgba(0,0,0,0.6);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-shrink: 0; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                <h2 id="fc-group-modal-title" style="color: var(--primary-color); margin: 0;">Tên Nhóm</h2>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <span style="font-weight: bold; color: #aaa;">Tổng thẻ: <span id="fc-group-modal-count" style="color: var(--primary-color)">0</span></span>
+                    <button onclick="pickRandomFCInGroup()" style="background: #ff9800; color: #000; padding: 8px 15px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer;">🎲 Ngẫu Nhiên Nhóm Này</button>
+                    <button onclick="closeFCGroupModal()" style="background: var(--coral-red); padding: 8px 15px; border-radius: 8px; font-weight: bold; color: #000; border: none; cursor: pointer;">❌ Đóng</button>
+                </div>
+            </div>
+            <div style="flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column;">
+                <div id="fc-group-modal-container" class="fc-grid" style="min-height: 100%; align-content: center;"></div>
+            </div>
+        </div>
     </div>
 
     <div id="image-viewer-modal">

@@ -123,18 +123,18 @@ th { background: rgba(0,0,0,0.3); color: var(--primary-color); white-space: nowr
 #mini-sheet td, #mini-sheet th { padding: 0; }
 #mini-sheet input {
     width: 100%;
-    min-width: 50px; /* Cho phép cột co nhỏ tối đa tới 50px để tiết kiệm diện tích */
+    min-width: 75px; /* Đã tăng lên 75px để đảm bảo các chữ như "Test 10" không bao giờ bị cắt */
     box-sizing: border-box;
     border: none;
     background: transparent;
     color: var(--text-color);
-    padding: 10px 5px;
+    padding: 10px 2px; /* Đã giảm khoảng đệm 2 bên để ưu tiên diện tích hiển thị chữ */
     text-align: center;
     font-size: 0.85rem;
     transition: background 0.2s;
 }
 #mini-sheet input:focus {
-    background: rgba(255,255,255,0.1); /* Highlight nhẹ ô đang được nhập liệu */
+    background: rgba(255,255,255,0.1); 
     outline: none;
 }
 

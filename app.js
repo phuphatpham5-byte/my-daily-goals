@@ -412,7 +412,6 @@ function drawWheel() {
 function spinWheel() { if(!appData.wheelItems.length) return; document.getElementById('spin-btn').disabled = true; curDeg += 1800 + Math.random()*360; document.getElementById('wheel').style.transform = `rotate(${curDeg}deg)`; setTimeout(()=>{ document.getElementById('spin-btn').disabled = false; const degPerItem = 360/appData.wheelItems.length; const idx = Math.floor((360 - (curDeg%360)) / degPerItem) % appData.wheelItems.length; document.getElementById('wheel-result').innerText = `🎉 Kết quả: ${appData.wheelItems[idx]}`; }, 4000); }
 
 // --- 10. SHEETS ---
-// --- 10. SHEETS ---
 function renderSheet() { 
     const t = document.getElementById('mini-sheet'); t.innerHTML = ''; 
     appData.sheetData.forEach((row, ri) => { 

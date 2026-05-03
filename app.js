@@ -15,6 +15,7 @@ if (!appData.habits) appData.habits = [];
 if (!appData.fcGroups) appData.fcGroups = []; // Nhóm flashcards
 if (!appData.moduleWidths) appData.moduleWidths = {};
 if (!appData.moduleHeights) appData.moduleHeights = {};
+if (!appData.sheetFormat) appData.sheetFormat = []; // Thêm bộ nhớ Format Bảng
 if (!appData.wheelTheme) appData.wheelTheme = { useCustom: false, color1: '#ff4d4d', color2: '#4da6ff', textColor: '#ffffff' };
 if (!appData.layout.includes('module-habits')) appData.layout.splice(1, 0, 'module-habits');
 
@@ -412,8 +413,18 @@ function drawWheel() {
 function spinWheel() { if(!appData.wheelItems.length) return; document.getElementById('spin-btn').disabled = true; curDeg += 1800 + Math.random()*360; document.getElementById('wheel').style.transform = `rotate(${curDeg}deg)`; setTimeout(()=>{ document.getElementById('spin-btn').disabled = false; const degPerItem = 360/appData.wheelItems.length; const idx = Math.floor((360 - (curDeg%360)) / degPerItem) % appData.wheelItems.length; document.getElementById('wheel-result').innerText = `🎉 Kết quả: ${appData.wheelItems[idx]}`; }, 4000); }
 
 // --- 10. SHEETS ---
+let selR = -1, selC = -1; // Lưu vị trí ô đang được click chuột
+
 function renderSheet() { 
     const t = document.getElementById('mini-sheet'); t.innerHTML = ''; 
+    
+    // Auto-heal đồng bộ dữ liệu Format và Text để chống lỗi Crash
+    if (!appData.sheetFormat) appData.sheetFormat = [];
+    while (appData.sheetFormat.length < appData.sheetData.length) appData.sheetFormat.push([]);
+    appData.sheetData.forEach((r, i) => {
+        while (appData.sheetFormat[i].length < r.length) appData.sheetFormat[i].push({});
+    });
+
     appData.sheetData.forEach((row, ri) => { 
         const tr = document.createElement('tr'); 
         row.forEach((val, ci) => { 
@@ -421,20 +432,92 @@ function renderSheet() {
             const i = document.createElement('input'); 
             i.value = val; 
             
-            // Ép độ rộng tối thiểu dựa theo số chữ hiện có (Mỗi chữ ~9px + 20px lề)
+            // Áp dụng Format hiện có
+            const fmt = appData.sheetFormat[ri][ci] || {};
+            if (fmt.bold) i.style.fontWeight = 'bold';
+            if (fmt.italic) i.style.fontStyle = 'italic';
+            if (fmt.underline) i.style.textDecoration = 'underline';
+            if (fmt.fontSize) i.style.fontSize = fmt.fontSize + 'px';
+            if (fmt.color) i.style.color = fmt.color;
+            if (fmt.bg) i.style.backgroundColor = fmt.bg;
+
+            // Đánh dấu ô nếu đang được chọn
+            if (ri === selR && ci === selC) i.classList.add('selected-cell');
+
             i.style.minWidth = Math.max(75, val.length * 9 + 20) + 'px';
+            i.addEventListener('input', e => { e.target.style.minWidth = Math.max(75, e.target.value.length * 9 + 20) + 'px'; });
             
-            // Lắng nghe sự kiện: Ngay khi bạn đang gõ phím, cột sẽ tự động giãn ra
-            i.addEventListener('input', e => { 
-                e.target.style.minWidth = Math.max(75, e.target.value.length * 9 + 20) + 'px'; 
-            });
-            
+            // Bắt sự kiện bấm vào ô để hiện Toolbar và nhận diện Hàng/Cột
+            i.onfocus = () => {
+                selR = ri; selC = ci;
+                document.getElementById('sheet-toolbar').style.display = 'flex';
+                document.querySelectorAll('#mini-sheet input').forEach(el => el.classList.remove('selected-cell'));
+                i.classList.add('selected-cell');
+                
+                // Đồng bộ Toolbar với định dạng của ô
+                document.getElementById('sheet-font-size').value = fmt.fontSize || 14;
+                document.getElementById('sheet-color').value = fmt.color || '#ffffff';
+                document.getElementById('sheet-bg').value = fmt.bg || '#000000';
+            };
+
             i.onchange = e => { appData.sheetData[ri][ci] = e.target.value; saveData(); }; 
             td.appendChild(i); tr.appendChild(td); 
         }); 
         t.appendChild(tr); 
     }); 
 }
+
+function sheetAddRow() { 
+    appData.sheetData.push(new Array(appData.sheetData[0].length).fill("")); 
+    appData.sheetFormat.push(new Array(appData.sheetData[0].length).fill(null).map(()=>({})));
+    renderSheet(); saveData(); 
+}
+function sheetAddCol() { 
+    appData.sheetData.forEach(r => r.push("")); 
+    appData.sheetFormat.forEach(r => r.push({}));
+    renderSheet(); saveData(); 
+}
+function sheetDelRow() {
+    if(selR === -1) return alert("Vui lòng click vào 1 ô để chọn hàng cần xóa!");
+    if(appData.sheetData.length <= 1) return alert("Không thể xóa hàng cuối cùng!");
+    if(confirm("Bạn có chắc muốn xóa HÀNG này không? Mọi dữ liệu trên hàng sẽ mất.")) {
+        appData.sheetData.splice(selR, 1);
+        appData.sheetFormat.splice(selR, 1);
+        selR = -1; selC = -1;
+        document.getElementById('sheet-toolbar').style.display = 'none';
+        renderSheet(); saveData();
+    }
+}
+function sheetDelCol() {
+    if(selC === -1) return alert("Vui lòng click vào 1 ô để chọn cột cần xóa!");
+    if(appData.sheetData[0].length <= 1) return alert("Không thể xóa cột cuối cùng!");
+    if(confirm("Bạn có chắc muốn xóa CỘT này không? Mọi dữ liệu trên cột sẽ mất.")) {
+        appData.sheetData.forEach(r => r.splice(selC, 1));
+        appData.sheetFormat.forEach(r => r.splice(selC, 1));
+        selR = -1; selC = -1;
+        document.getElementById('sheet-toolbar').style.display = 'none';
+        renderSheet(); saveData();
+    }
+}
+function formatSheet(type, val) {
+    if (selR === -1 || selC === -1) return;
+    let fmt = appData.sheetFormat[selR][selC];
+    if (type === 'bold') fmt.bold = !fmt.bold;
+    if (type === 'italic') fmt.italic = !fmt.italic;
+    if (type === 'underline') fmt.underline = !fmt.underline;
+    if (type === 'fontSize') fmt.fontSize = val;
+    if (type === 'color') fmt.color = val;
+    if (type === 'bg') fmt.bg = val;
+    
+    saveData(); renderSheet();
+    // Giữ lại focus cho ô không bị giật lag
+    setTimeout(() => {
+        const inputs = document.getElementById('mini-sheet').getElementsByTagName('input');
+        const idx = selR * appData.sheetData[0].length + selC;
+        if (inputs[idx]) inputs[idx].focus();
+    }, 10);
+}
+function calculateAverage() { let s=0, c=0; const h = appData.sheetData[0].map(x=>x.toLowerCase()); const ci = h.findIndex(x=>x.includes('hệ số')), si = h.findIndex(x=>x.includes('điểm')); if(ci<0||si<0) return alert("Bảng cần có cột 'Hệ số' và 'Điểm'!"); for(let i=1;i<appData.sheetData.length;i++){ const r=appData.sheetData[i], cv=parseFloat(r[ci]), sv=parseFloat(r[si]); if(!isNaN(cv)&&!isNaN(sv)){ s+=cv*sv; c+=cv; } } alert("📊 Điểm trung bình: "+(c?(s/c).toFixed(2):0)); }
 function sheetAddRow() { appData.sheetData.push(new Array(appData.sheetData[0].length).fill("")); renderSheet(); }
 function sheetAddCol() { appData.sheetData.forEach(r => r.push("")); renderSheet(); }
 function calculateAverage() { let s=0, c=0; const h = appData.sheetData[0].map(x=>x.toLowerCase()); const ci = h.findIndex(x=>x.includes('hệ số')), si = h.findIndex(x=>x.includes('điểm')); if(ci<0||si<0) return alert("Bảng cần có cột 'Hệ số' và 'Điểm'!"); for(let i=1;i<appData.sheetData.length;i++){ const r=appData.sheetData[i], cv=parseFloat(r[ci]), sv=parseFloat(r[si]); if(!isNaN(cv)&&!isNaN(sv)){ s+=cv*sv; c+=cv; } } alert("📊 Điểm trung bình: "+(c?(s/c).toFixed(2):0)); }

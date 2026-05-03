@@ -412,7 +412,30 @@ function drawWheel() {
 function spinWheel() { if(!appData.wheelItems.length) return; document.getElementById('spin-btn').disabled = true; curDeg += 1800 + Math.random()*360; document.getElementById('wheel').style.transform = `rotate(${curDeg}deg)`; setTimeout(()=>{ document.getElementById('spin-btn').disabled = false; const degPerItem = 360/appData.wheelItems.length; const idx = Math.floor((360 - (curDeg%360)) / degPerItem) % appData.wheelItems.length; document.getElementById('wheel-result').innerText = `🎉 Kết quả: ${appData.wheelItems[idx]}`; }, 4000); }
 
 // --- 10. SHEETS ---
-function renderSheet() { const t = document.getElementById('mini-sheet'); t.innerHTML = ''; appData.sheetData.forEach((row, ri) => { const tr = document.createElement('tr'); row.forEach((val, ci) => { const td = document.createElement(ri===0?'th':'td'); const i = document.createElement('input'); i.value = val; i.onchange = e => { appData.sheetData[ri][ci] = e.target.value; saveData(); }; td.appendChild(i); tr.appendChild(td); }); t.appendChild(tr); }); }
+// --- 10. SHEETS ---
+function renderSheet() { 
+    const t = document.getElementById('mini-sheet'); t.innerHTML = ''; 
+    appData.sheetData.forEach((row, ri) => { 
+        const tr = document.createElement('tr'); 
+        row.forEach((val, ci) => { 
+            const td = document.createElement(ri===0?'th':'td'); 
+            const i = document.createElement('input'); 
+            i.value = val; 
+            
+            // Ép độ rộng tối thiểu dựa theo số chữ hiện có (Mỗi chữ ~9px + 20px lề)
+            i.style.minWidth = Math.max(75, val.length * 9 + 20) + 'px';
+            
+            // Lắng nghe sự kiện: Ngay khi bạn đang gõ phím, cột sẽ tự động giãn ra
+            i.addEventListener('input', e => { 
+                e.target.style.minWidth = Math.max(75, e.target.value.length * 9 + 20) + 'px'; 
+            });
+            
+            i.onchange = e => { appData.sheetData[ri][ci] = e.target.value; saveData(); }; 
+            td.appendChild(i); tr.appendChild(td); 
+        }); 
+        t.appendChild(tr); 
+    }); 
+}
 function sheetAddRow() { appData.sheetData.push(new Array(appData.sheetData[0].length).fill("")); renderSheet(); }
 function sheetAddCol() { appData.sheetData.forEach(r => r.push("")); renderSheet(); }
 function calculateAverage() { let s=0, c=0; const h = appData.sheetData[0].map(x=>x.toLowerCase()); const ci = h.findIndex(x=>x.includes('hệ số')), si = h.findIndex(x=>x.includes('điểm')); if(ci<0||si<0) return alert("Bảng cần có cột 'Hệ số' và 'Điểm'!"); for(let i=1;i<appData.sheetData.length;i++){ const r=appData.sheetData[i], cv=parseFloat(r[ci]), sv=parseFloat(r[si]); if(!isNaN(cv)&&!isNaN(sv)){ s+=cv*sv; c+=cv; } } alert("📊 Điểm trung bình: "+(c?(s/c).toFixed(2):0)); }

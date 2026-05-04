@@ -431,7 +431,7 @@ function highlightSheetRange() {
 function renderSheet() { 
     const t = document.getElementById('mini-sheet'); t.innerHTML = ''; 
     
-    // Auto-heal
+    // Auto-heal dữ liệu định dạng
     if (!appData.sheetFormat) appData.sheetFormat = [];
     while (appData.sheetFormat.length < appData.sheetData.length) appData.sheetFormat.push([]);
     appData.sheetData.forEach((r, i) => { while (appData.sheetFormat[i].length < r.length) appData.sheetFormat[i].push({}); });
@@ -439,12 +439,13 @@ function renderSheet() {
     appData.sheetData.forEach((row, ri) => { 
         const tr = document.createElement('tr'); 
         row.forEach((val, ci) => { 
-            const td = document.createElement(ri===0?'th':'td'); 
+            const td = document.createElement(ri === 0 ? 'th' : 'td'); 
             const i = document.createElement('input'); 
             i.dataset.r = ri; i.dataset.c = ci;
             i.value = val; 
-            
-            // Format
+            i.readOnly = true; // Mặc định là chỉ đọc để cho phép chọn ô trước
+
+            // Áp dụng Format hiện có
             const fmt = appData.sheetFormat[ri][ci] || {};
             if (fmt.bold) i.style.fontWeight = 'bold';
             if (fmt.italic) i.style.fontStyle = 'italic';
@@ -453,33 +454,47 @@ function renderSheet() {
             if (fmt.color) i.style.color = fmt.color;
             if (fmt.bg) i.style.backgroundColor = fmt.bg;
 
-            // Highlight state
+            // Hiển thị trạng thái Highlight (Chọn 1 ô hoặc nhiều ô)
             const rMin = Math.min(startR, endR), rMax = Math.max(startR, endR);
             const cMin = Math.min(startC, endC), cMax = Math.max(startC, endC);
             if (ri === selR && ci === selC) i.classList.add('selected-cell');
             else if (startR !== -1 && ri >= rMin && ri <= rMax && ci >= cMin && ci <= cMax) i.classList.add('selected-range');
 
-            // Width co bóp
+            // Tự động co bóp chiều rộng theo nội dung
             i.style.minWidth = Math.max(75, val.length * 9 + 20) + 'px';
             i.addEventListener('input', e => { e.target.style.minWidth = Math.max(75, e.target.value.length * 9 + 20) + 'px'; });
             
-            // ĐIỀU HƯỚNG BẰNG PHÍM MŨI TÊN
+            // XỬ LÝ CLICK: Nhấn lần 1 để chọn, nhấn lần 2 để sửa
+            i.onclick = (e) => {
+                if (selR === ri && selC === ci) {
+                    i.readOnly = false; // Đã chọn rồi -> Cho phép sửa
+                }
+            };
+
+            // Khi rời khỏi ô -> Trả về trạng thái chỉ đọc
+            i.onblur = () => { i.readOnly = true; };
+
+            // ĐIỀU HƯỚNG BẰNG PHÍM MŨI TÊN (CẢI TIẾN)
             i.addEventListener('keydown', e => {
                 let tgtR = ri, tgtC = ci;
+                // Nếu đang ở chế độ CHỈ CHỌN (readOnly), phím mũi tên sẽ nhảy ô ngay lập tức
+                const isNavMode = i.readOnly;
+
                 if (e.key === 'ArrowUp') { e.preventDefault(); tgtR--; }
                 else if (e.key === 'ArrowDown') { e.preventDefault(); tgtR++; }
-                else if (e.key === 'ArrowLeft' && i.selectionStart === 0) tgtC--; 
-                else if (e.key === 'ArrowRight' && i.selectionEnd === i.value.length) tgtC++;
+                else if (e.key === 'ArrowLeft' && (isNavMode || i.selectionStart === 0)) { tgtC--; }
+                else if (e.key === 'ArrowRight' && (isNavMode || i.selectionEnd === i.value.length)) { tgtC++; }
 
                 if (tgtR !== ri || tgtC !== ci) {
                     if (tgtR >= 0 && tgtR < appData.sheetData.length && tgtC >= 0 && tgtC < row.length) {
+                        e.preventDefault();
                         const targetInput = document.querySelector(`#mini-sheet input[data-r="${tgtR}"][data-c="${tgtC}"]`);
                         if(targetInput) targetInput.focus();
                     }
                 }
             });
 
-            // SỰ KIỆN CLICK VÀ KÉO KHỐI
+            // SỰ KIỆN FOCUS (Xử lý Toolbar và Nút kéo chọn nhiều ô)
             i.onfocus = () => {
                 if(!isDraggingSheet) {
                     selR = startR = endR = ri; selC = startC = endC = ci;
@@ -489,7 +504,7 @@ function renderSheet() {
                     document.getElementById('sheet-color').value = fmt.color || '#ffffff';
                     document.getElementById('sheet-bg').value = fmt.bg || '#000000';
 
-                    // Gắn nút Drag Handle
+                    // Gắn nút Drag Handle (Nút tròn nhỏ để kéo chọn nhiều ô)
                     let handle = document.getElementById('global-drag-handle');
                     if(!handle) {
                         handle = document.createElement('div');
@@ -502,6 +517,7 @@ function renderSheet() {
                 }
             };
 
+            // Kéo chuột để chọn vùng
             i.addEventListener('mouseenter', () => {
                 if(isDraggingSheet) { endR = ri; endC = ci; highlightSheetRange(); }
             });

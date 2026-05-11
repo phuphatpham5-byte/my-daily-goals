@@ -345,8 +345,24 @@ function renderFCInModal() {
 function triggerRandomEffect(cards) {
     if (cards.length === 0) return alert("Chưa có thẻ nào để ngẫu nhiên!");
     cards.forEach(c => c.classList.remove('highlight-random'));
-    const randomIndex = Math.floor(Math.random() * cards.length);
-    const selectedCard = cards[randomIndex];
+    
+    // --- THUẬT TOÁN RANDOM KHÔNG LẶP LẠI (TÚI NGẪU NHIÊN) ---
+    // 1. Lọc ra danh sách các thẻ CHƯA được chọn lần nào trong vòng lặp hiện tại
+    let unpickedCards = Array.from(cards).filter(c => !c.dataset.picked);
+    
+    // 2. Nếu tất cả các thẻ đều đã được bốc trúng -> Reset lại từ đầu
+    if (unpickedCards.length === 0) {
+        cards.forEach(c => delete c.dataset.picked);
+        unpickedCards = Array.from(cards);
+    }
+    
+    // 3. Chọn ngẫu nhiên 1 thẻ trong số các thẻ CHƯA được chọn
+    const randomIndex = Math.floor(Math.random() * unpickedCards.length);
+    const selectedCard = unpickedCards[randomIndex];
+    
+    // 4. Đánh dấu thẻ này là đã được bốc để lần sau bỏ qua
+    selectedCard.dataset.picked = "true";
+    
     selectedCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
     setTimeout(() => selectedCard.classList.add('highlight-random'), 300);
 }

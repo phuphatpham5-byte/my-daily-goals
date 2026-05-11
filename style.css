@@ -211,3 +211,23 @@ footer { text-align: center; margin-top: 30px; }
     border: 1px solid #fff;
     box-shadow: 0 0 3px rgba(0,0,0,0.5);
 }
+
+/* --- TÙY CHỈNH NÚT GIA HẠN ÔN TẬP --- */
+.recall-reschedule-select {
+    padding: 6px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #fff;
+    outline: none;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.recall-reschedule-select:hover {
+    background: rgba(255,255,255,0.1);
+}
+.recall-reschedule-select option {
+    background: #222; /* Giúp menu thả xuống có màu đen đồng bộ */
+    color: #fff;
+}

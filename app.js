@@ -387,6 +387,11 @@ function setRecall(id, title, days) {
 function checkActiveRecall() {
     const due = appData.recall.filter(r => r.dateToReview <= currentDate);
     const box = document.getElementById('recall-notice'); const list = document.getElementById('recall-list');
+    
+    // Tự động tạo danh sách ngày lẻ từ 1 đến 29
+    let optionsHtml = '<option value="">+ Ôn tập</option>';
+    for(let i = 1; i <= 29; i += 2) { optionsHtml += `<option value="${i}">${i} ngày</option>`; }
+
     if(due.length) { 
         box.classList.remove('hidden'); 
         list.innerHTML = due.map(r => `
@@ -395,13 +400,27 @@ function checkActiveRecall() {
                     <span>${r.title}</span> 
                     ${r.img ? `<div class="img-wrapper"><img src="${r.img}" class="recall-img"><button class="view-img-btn" onclick="openImageModal('${r.img}', event)">🔍</button></div>`:''}
                 </div>
-                <button onclick="remRecall('${r.id}')" class="recall-done-btn">Xong</button>
+                <div style="display:flex; gap: 8px; align-items: center;">
+                    <select class="recall-select" onchange="rescheduleRecall('${r.id}', this.value)" style="margin-top: 0; padding: 6px; border-radius: 6px; font-size: 0.8rem; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); color: #fff;">${optionsHtml}</select>
+                    <button onclick="remRecall('${r.id}')" class="recall-done-btn">Xong</button>
+                </div>
             </li>
         `).join(''); 
     } else box.classList.add('hidden');
 }
 function remRecall(id) { appData.recall = appData.recall.filter(x => x.id !== id); saveData(); checkActiveRecall(); }
 
+// TÍNH NĂNG MỚI: Gia hạn lịch ôn tập trực tiếp
+function rescheduleRecall(recallId, days) {
+    if(!days) return;
+    const r = appData.recall.find(x => x.id === recallId);
+    if(!r) return;
+    const d = new Date(); d.setDate(d.getDate() + parseInt(days));
+    r.dateToReview = d.toISOString().split('T')[0];
+    saveData();
+    alert(`Đã hẹn lịch ôn tập lại "${r.title}" vào ngày ${r.dateToReview}`);
+    checkActiveRecall(); // Làm mới danh sách ngay lập tức để ẩn mục vừa gia hạn đi
+}
 // --- 9. WHEEL TÙY CHỈNH MÀU ---
 function applyWheelColors() { appData.wheelTheme.useCustom = true; appData.wheelTheme.color1 = document.getElementById('w-color-1').value; appData.wheelTheme.color2 = document.getElementById('w-color-2').value; appData.wheelTheme.textColor = document.getElementById('w-color-text').value; saveData(); drawWheel(); }
 function resetWheelColors() { appData.wheelTheme.useCustom = false; document.getElementById('w-color-1').value = '#ff4d4d'; document.getElementById('w-color-2').value = '#4da6ff'; document.getElementById('w-color-text').value = '#ffffff'; appData.wheelTheme.textColor = '#000000'; saveData(); drawWheel(); }
